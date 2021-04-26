@@ -1,0 +1,85 @@
+<!DOCTYPE html style="height: 100%">
+<meta charset="utf-8" />
+<!-- <link rel="icon" href="./favicon.ico" type="image/x-icon">  -->
+<!-- <link rel="shortcut icon" href="./favicon.ico" type="image/x-icon"> -->
+<link rel="stylesheet" href="./style.css">
+<body>
+  <svg height="0">
+    <defs>
+      <linearGradient id="grad2" x1="0%" y1="0%" x2="0%" y2="100%">
+        <stop offset="0%" style="stop-color:rgb(0,0,0);stop-opacity:1" />
+        <stop offset="100%" style="stop-color:rgb(0,0,0);stop-opacity:0" />
+      </linearGradient>
+    </defs>
+  </svg>
+  <h1>Shot Chart for <span id="game_id"></span></h1>
+  <div id="my_dataviz" style="height: calc(100% - 80px)"></div>
+</body>
+<script src="https://d3js.org/d3.v6.js"></script>
+<script src="https://unpkg.com/d3-simple-slider"></script>
+
+<script type="module">
+  const dataUrl =
+    "https://raw.githubusercontent.com/6859-sp21/final-project-basketball-fans/main/shot_data_2019.json";
+ 
+  const coord = (str) => {
+    return parseFloat(str.substring(0, str.length - 3))
+  }
+  let data = await d3.json(dataUrl)
+  let playerImages = await d3.json(playerImages)
+    // Setting up variables that describe our chart's space.
+    const margin = { top: 30, right: 30, bottom: 30, left: 30 };
+
+    // append the svg object to the body of the page
+    var svg = d3
+      .select("#my_dataviz")
+      .append("svg")
+      .attr("width", "100%")
+      .attr("height", "100%")
+      .append("g")
+      .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+    var currentGameID = "10/16/2018_BOS_PHI"
+
+    function updateShotChart(gameID) { // this will need to take time as input once we animate
+      
+
+      const width = window.innerWidth - margin.left - margin.right;
+      const height = window.innerHeight - margin.top - margin.bottom - 80;
+      const gameData = data[gameID]
+      const shots = data[gameID]['shots_home']
+      currentGameID = gameID 
+      d3.select('#game_id').text(gameData['home'] + " - " + gameData['visitor'] + " (" + gameData['date'] + ")");
+      let duration = 2000
+      let image = svg
+        .selectAll('g')
+        .data(shots)
+        .join(
+          enter => {
+            // G IS THE GROUP OF IMAGE AND TEXT/RECTANGLE
+            let g = enter.append('g').attr("overflow", "hidden");
+            g.call(enter => enter.transition().duration(duration)
+            .attr('transform', function (d) { 
+              return "translate(" + 10*coord(d.x) + "," + 10*coord(d.y) + ")"
+            }))
+              // THE RECT
+            let circle =  g.append('circle')
+              .attr("fill", "#FF0000")
+              
+              
+            circle.call(enter => enter.transition()
+              .attr('r', 0)
+              .duration(duration)
+              .attr('r', 20))
+
+            },
+          update => update,
+          exit => exit     
+        )
+        
+        
+        
+    }
+    updateShotChart(currentGameID)          
+
+</script>
