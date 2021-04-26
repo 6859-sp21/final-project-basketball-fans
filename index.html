@@ -66,10 +66,21 @@
               return "translate(" + 20*coord(d.x) + "," + 15*coord(d.y) + ")"
             }))
 
+            g.append('circle')
+              .attr('fill', (d)=>{return (d.MAKE_MISS=='MAKE' ? '#02bd02' : '#FF0000')})
+              .call(enter => enter.transition()
+              .attr('r', 0)
+              .attr('cx', 0)
+              .attr('cy', 0)
+              .duration(duration)
+              .attr('r', 25)
+              .attr('cx', 20)
+              .attr('cy', 20)
+              );
+
             g.append('clipPath')
               .attr('id', (d,i) => i)
               .append('circle')
-              
               .call(enter => enter.transition()
               .attr('r', 0)
               .attr('cx', 0)
