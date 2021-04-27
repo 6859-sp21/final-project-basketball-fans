@@ -13,12 +13,28 @@
     </defs>
   </svg>
   <h1>Shot Chart for <span id="game_id"></span></h1>
+  <select name="Game" id="choosegame">
+
+  </select>
   <div id="my_dataviz" style="height: calc(100% - 80px)"></div>
 </body>
 <script src="https://d3js.org/d3.v6.js"></script>
 <script src="https://unpkg.com/d3-simple-slider"></script>
 
 <script type="module">
+             var stringToColor = function(str) {
+        var hash = 0;
+        for (var i = 0; i < str.length; i++) {
+            hash = str.charCodeAt(i) + ((hash << 5) - hash);
+        }
+        var colour = '#';
+        for (var i = 0; i < 3; i++) {
+            var value = (hash >> (i * 8)) & 0xFF;
+            colour += ('00' + value.toString(16)).substr(-2);
+        }
+        return colour;
+        }
+
   const dataUrl =
     "https://raw.githubusercontent.com/6859-sp21/final-project-basketball-fans/main/shot_data_2019.json";
   const playerImagesUrl =
@@ -28,6 +44,20 @@
     return parseFloat(str.substring(0, str.length - 3))
   }
   let data = await d3.json(dataUrl)
+  let select = document.getElementById('choosegame')
+   let firstGameId = ""
+   for (const gameId in data) {
+       if(firstGameId === "") firstGameId = gameId 
+       var option = document.createElement('option')
+       option.value = gameId 
+       let gameData = data[gameId]
+       option.innerHTML = gameData['home'] + " - " + gameData['visitor'] + " (" + gameData['date'] + ")"
+       select.appendChild(option)
+   }
+   select.value = firstGameId 
+   select.onchange = (event) => {
+       updateShotChart(event.target.value)
+   }
   let playerImages = await d3.json(playerImagesUrl)
     // Setting up variables that describe our chart's space.
     const margin = { top: 30, right: 30, bottom: 30, left: 30 };
@@ -41,22 +71,23 @@
       .append("g")
       .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
-    var currentGameID = "10/16/2018_BOS_PHI"
+    var currentGameID = firstGameId
 
     function updateShotChart(gameID) { // this will need to take time as input once we animate
       
+     
 
       const width = window.innerWidth - margin.left - margin.right;
       const height = window.innerHeight - margin.top - margin.bottom - 80;
       const gameData = data[gameID]
       let shots = data[gameID]['shots_home']
-      //shots = shots.filter((entry)=>{return entry.MAKE_MISS == 'MAKE'})
+      shots = shots.filter((entry)=>{return entry.MAKE_MISS == 'MAKE'})
       currentGameID = gameID 
       d3.select('#game_id').text(gameData['home'] + " - " + gameData['visitor'] + " (" + gameData['date'] + ")");
       let duration = 2000
       let image = svg
         .selectAll('g')
-        .data(shots)
+        .data(shots, (d, i) => {return (i) + (d.PLAYER) + (d.TIME_REMAINING) + (d.x) + (d.y) })
         .join(
           enter => {
             // G IS THE GROUP OF IMAGE AND TEXT/RECTANGLE
@@ -67,7 +98,8 @@
             }))
 
             g.append('circle')
-              .attr('fill', (d)=>{return (d.MAKE_MISS=='MAKE' ? '#02bd02' : '#FF0000')})
+              
+              .attr('fill', (d)=>{return stringToColor(d.PLAYER)})
               .call(enter => enter.transition()
               .attr('r', 0)
               .attr('cx', 0)
@@ -108,7 +140,22 @@
 
             },
           update => update,
-          exit => exit     
+          exit => {
+              exit.select("image").call(exit1 => exit1.transition().duration(duration)
+              .attr('width', 0)
+              .attr('height', 0)
+              )
+              exit.select("circle").call(exit1 => exit1.transition().duration(duration)
+              .attr('r', 0)
+              )
+
+              exit.select("clipPath").select("circle").call(exit1 => exit1.transition().duration(duration)
+              .attr('r', 0)
+              )
+
+              exit.call(exit1 => exit1.transition().delay(duration)
+              .remove())  
+          }     
         )
         
         
