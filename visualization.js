@@ -74,12 +74,13 @@ function updateShotChart(gameID) { // this will need to take time as input once 
           );
 
         g.append('clipPath')
-          .attr('id', (d,i) => d.gameId + '_' + i)
+          .attr('id', (d,i) => gameID + '_' + i)
           .append('circle')
-          .call(enter => enter.transition()
-          .attr('r', 0)
+          .call(enter => enter
+            .attr('r', 0)
           .attr('cx', 0)
           .attr('cy', 0)
+            .transition()
           .duration(duration)
           .attr('r', 20)
           .attr('cx', 20)
@@ -89,14 +90,15 @@ function updateShotChart(gameID) { // this will need to take time as input once 
         let image =  g.append('svg:image')
            .attr('xlink:href', function (d) {return playerImages[d.PLAYER] } )
           .attr("preserveAspectRatio", "xMinYMin slice")
-          .attr('clip-path', (d,i) => `url(#${d.gameId + '_' + i})`)
+          .attr('clip-path', (d,i) => `url(#${gameID + '_' + i})`)
           
           
-        image.call(enter => enter.transition()
-        .attr('x', 0)
-        .attr('y', 0)
-          .attr('width', 0)
-          .attr('height', 0)
+        image.call(enter => enter
+            .attr('x', 0)
+            .attr('y', 0)
+              .attr('width', 0)
+              .attr('height', 0)
+            .transition()
           .duration(duration)
           .attr('width', 40)
           .attr('height', 40))
