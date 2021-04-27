@@ -66,13 +66,14 @@ def getRegularSeasonShots(year):
             "home": row['HOME'],
             "visitor": row['VISITOR'],
             "shots_home": home_shots,
-            "shots_visitor": visitor_shots
+            "shots_visitor": visitor_shots,
+            "game_id": gameId
         }
-        if(index > 5):
+        if(index > 10):
             break
     with open(f'shot_data_{year}.json', 'w') as outfile:
         json.dump(data, outfile)
     with open(f'playerImages.json', 'w') as outfile:
         json.dump(playerImages, outfile)
 
-# getRegularSeasonShots(2019)
+getRegularSeasonShots(2019)

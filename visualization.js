@@ -1,10 +1,8 @@
-import {stringToColor, coord} from "./utilities.js"
+import {stringToColor, coord, url} from "./utilities.js"
 
 // GET DATA
-const dataUrl =
-"https://raw.githubusercontent.com/6859-sp21/final-project-basketball-fans/main/shot_data_2019.json";
-const playerImagesUrl =
-"https://raw.githubusercontent.com/6859-sp21/final-project-basketball-fans/main/playerImages.json";
+const dataUrl = url("./shot_data_2019.json");
+const playerImagesUrl = url("./playerImages.json");
 let data = await d3.json(dataUrl)
 let playerImages = await d3.json(playerImagesUrl)
 
@@ -76,7 +74,7 @@ function updateShotChart(gameID) { // this will need to take time as input once 
           );
 
         g.append('clipPath')
-          .attr('id', (d,i) => i)
+          .attr('id', (d,i) => d.gameId + '_' + i)
           .append('circle')
           .call(enter => enter.transition()
           .attr('r', 0)
@@ -91,7 +89,7 @@ function updateShotChart(gameID) { // this will need to take time as input once 
         let image =  g.append('svg:image')
            .attr('xlink:href', function (d) {return playerImages[d.PLAYER] } )
           .attr("preserveAspectRatio", "xMinYMin slice")
-          .attr('clip-path', (d,i) => `url(#${i})`)
+          .attr('clip-path', (d,i) => `url(#${d.gameId + '_' + i})`)
           
           
         image.call(enter => enter.transition()

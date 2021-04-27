@@ -17,4 +17,7 @@ const coord = (str) => {
     return parseFloat(str.substring(0, str.length - 3))
 }
 
-export {stringToColor, coord}
+const url = (str) => {
+    return str + "?q=" + Math.floor(Math.random()*10000)
+}
+export {stringToColor, coord, url}
