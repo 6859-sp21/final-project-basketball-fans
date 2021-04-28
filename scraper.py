@@ -53,13 +53,14 @@ def getRegularSeasonShots(year):
         yr = row['DATE'].year
         gameId = getGameID(row['DATE'].strftime("%m/%d/%Y"), abbrev(row['HOME'], yr), abbrev(row['VISITOR'], yr))
         dd = get_shot_chart(row['DATE'].strftime("%m/%d/%Y"), abbrev(row['HOME'], yr), abbrev(row['VISITOR'], yr))
-        print(gameId)
         home_shots = json.loads(dd[abbrev(row['HOME'], yr)].to_json(orient='records'))
         visitor_shots = json.loads(dd[abbrev(row['VISITOR'], yr)].to_json(orient='records'))
         for entry in home_shots:
             addPlayerImage(entry['PLAYER'])
+            entry.update({"TEAM": "home"})
         for entry in visitor_shots:
             addPlayerImage(entry['PLAYER'])
+            entry.update({"TEAM": "visitor"})
         data[gameId] = {
             "date": row['DATE'].strftime("%m/%d/%Y"),
             "home": row['HOME'],

@@ -21,6 +21,29 @@ const url = (str) => {
     return str + "?q=" + Math.floor(Math.random()*10000)
 }
 
+const aggregateShots = (shots) => {
+    var homeCountOfThrees = 0
+    var homeCountOfTwos = 0
+    var visitorCountOfThrees = 0
+    var visitorCountOfTwos = 0
+    for (var i = 0; i < shots.length; i++) {
+        if (shots[i]['TEAM'] === 'home') {
+            if (shots[i]['VALUE'] === 2) {
+                homeCountOfTwos++
+            } else if (shots[i]['VALUE'] === 3) {
+                homeCountOfThrees++
+            }
+        } else if (shots[i]['TEAM'] === 'visitor') {
+            if (shots[i]['VALUE'] === 2) {
+                visitorCountOfTwos++
+            } else if (shots[i]['VALUE'] === 3) {
+                visitorCountOfThrees++
+            }
+        }
+    }
+    return [homeCountOfThrees, homeCountOfTwos, visitorCountOfThrees, visitorCountOfTwos]
+}
+
 const duration = 2000
 const sliderDuration = 500
-export {stringToColor, coord, url, duration, sliderDuration}
+export {stringToColor, coord, url, duration, sliderDuration, aggregateShots}

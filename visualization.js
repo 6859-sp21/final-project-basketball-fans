@@ -1,4 +1,4 @@
-import {stringToColor, coord, url, duration, sliderDuration} from "./utilities.js"
+import {stringToColor, coord, url, duration, sliderDuration, aggregateShots} from "./utilities.js"
 
 // GET DATA
 const dataUrl = url("./shot_data_2016.json");
@@ -51,6 +51,7 @@ function updateShotChart(gameID, time) { // this will need to take time as input
   const height = window.innerHeight - margin.top - margin.bottom - 250;
   const gameData = data[gameID]
   let shots = data[gameID]['shots_home']
+  shots = shots.concat(data[gameID]['shots_visitor'])
   shots = shots.filter((entry)=>{return entry.MAKE_MISS == 'MAKE' })
   shots = shots.filter((entry) => {
       let q = entry['QUARTER']
@@ -58,8 +59,22 @@ function updateShotChart(gameID, time) { // this will need to take time as input
       let splt = time_remaining.split(":")
 
       let curtime = ((q>4)?(4*12*60+(q-4)*5*60) : q*12*60) - (parseInt(splt[0])*60+parseFloat(splt[1]))
+      entry['sorttime'] = curtime
       return curtime < time
-    })
+  })
+  shots.sort((a, b) => (a['sorttime'] > b['sorttime']) ? 1 : -1)
+
+  var [homeCountOfThrees, homeCountOfTwos, visitorCountOfThrees, visitorCountOfTwos] = aggregateShots(shots)
+
+  d3.select('#scoreboard').select('#home-score').select('#home-name').text(gameData['home'])
+  d3.select('#scoreboard').select('#home-score').select('#threes').text(`Threes: ${homeCountOfThrees}`)
+  d3.select('#scoreboard').select('#home-score').select('#twos').text(`Twos: ${homeCountOfTwos}`)
+
+  d3.select('#scoreboard').select('#visitor-score').select('#visitor-name').text(gameData['visitor'])
+  d3.select('#scoreboard').select('#visitor-score').select('#threes').text(`Threes: ${visitorCountOfThrees}`)
+  d3.select('#scoreboard').select('#visitor-score').select('#twos').text(`Twos: ${visitorCountOfTwos}`)
+
+
   currentGameID = gameID 
   d3.select('#game_id').text(gameData['home'] + " - " + gameData['visitor'] + " (" + gameData['date'] + ")");
  
@@ -70,6 +85,7 @@ function updateShotChart(gameID, time) { // this will need to take time as input
       enter => {
         // G IS THE GROUP OF IMAGE AND TEXT/RECTANGLE
         let g = enter.append('g').attr("overflow", "hidden");
+        //console.log(shots)
         g.call(enter => enter.transition().duration(duration)
         .attr('transform', function (d) { 
           return "translate(" + 20*coord(d.x) + "," + 15*coord(d.y) + ")"
