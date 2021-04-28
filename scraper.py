@@ -8,7 +8,7 @@ from basketball_reference_scraper.shot_charts import get_shot_chart
 from basketball_reference_scraper.seasons import get_schedule, get_standings
 from basketball_reference_scraper.players import get_stats, get_game_logs, get_player_headshot
 abbrevs = {}
-print(get_player_headshot('Lebron James'))
+
 def readPlayerImages():
     f = open('playerImages.json')
     return json.load(f)
@@ -42,7 +42,6 @@ def readAbbrevs():
         arr = line.split(":")
         abbrevs[arr[0].strip()] = arr[1].strip()
 readAbbrevs()
-print(abbrevs)
 def getGameID(date, home, visitor):
     if(home < visitor):
         return str(date) + '_' + home + '_' + visitor
@@ -69,11 +68,11 @@ def getRegularSeasonShots(year):
             "shots_visitor": visitor_shots,
             "game_id": gameId
         }
-        if(index > 10):
-            break
+        #if(index > 10):
+        #    break
     with open(f'shot_data_{year}.json', 'w') as outfile:
         json.dump(data, outfile)
     with open(f'playerImages.json', 'w') as outfile:
         json.dump(playerImages, outfile)
 
-getRegularSeasonShots(2019)
+getRegularSeasonShots(2016)

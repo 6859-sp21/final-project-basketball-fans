@@ -1,7 +1,7 @@
 import {stringToColor, coord, url, duration, sliderDuration} from "./utilities.js"
 
 // GET DATA
-const dataUrl = url("./shot_data_2019.json");
+const dataUrl = url("./shot_data_2016.json");
 const playerImagesUrl = url("./playerImages.json");
 let data = await d3.json(dataUrl)
 let playerImages = await d3.json(playerImagesUrl)
