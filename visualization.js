@@ -20,14 +20,18 @@ for (const gameId in data) {
 }
 select.value = firstGameId 
 var playButton = d3.select("#play-button");
+var playButtonDOM = document.getElementById("play-button");
 function pause() {
   moving = false;
         console.log("done" + currentTime)
-        clearInterval(timer);
+        if(timer != 0) timer.stop();
         timer = 0
         playButton.text("Play")
-        d3.select('.paused').style('display', 'block');
+        d3.select('.paused').style('display', 'block')
+        
         d3.select('.playing').style('display', 'none');
+        playButtonDOM.disabled = true
+        setTimeout(() => {playButtonDOM.disabled = false}, duration);
 }
 
 select.onchange = (event) => {
@@ -110,8 +114,8 @@ var currentTime = 0 // time goes from 0 to 48*60
             moving = true;
            //console.log("interval: "+ (total_time/(48*60))*1000*5)
            total_time = parseInt(document.getElementById('total-time').value)
-           clearInterval(timer)
-            timer = setInterval(step, (total_time/(48*60))*5*1000);
+            if(timer !== 0) timer.stop()
+            timer = d3.interval(step, (total_time/(48*60))*5*1000);
             playButton.text("Pause");
             d3.select('.playing').style('display', 'block');
             d3.select('.paused').style('display', 'none');

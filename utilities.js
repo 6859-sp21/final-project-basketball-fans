@@ -21,6 +21,6 @@ const url = (str) => {
     return str + "?q=" + Math.floor(Math.random()*10000)
 }
 
-const duration = 2000
+const duration = 1000
 const sliderDuration = 500
 export {stringToColor, coord, url, duration, sliderDuration}
