@@ -1,4 +1,4 @@
-import {stringToColor, coord, url} from "./utilities.js"
+import {stringToColor, coord, url, duration, sliderDuration} from "./utilities.js"
 
 // GET DATA
 const dataUrl = url("./shot_data_2019.json");
@@ -35,19 +35,34 @@ var svg = d3
   .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
 var currentGameID = firstGameId
+var currentTime = 0 // time goes from 0 to 48*60
 
-function updateShotChart(gameID) { // this will need to take time as input once we animate
+/**
+ * UPDATING THE SHOT CHART CODE 
+ * @param {*} gameID 
+ * @param {*} time 
+ */
+function updateShotChart(gameID, time) { // this will need to take time as input once we animate
   
- 
+  currentTime = time
+  currentGameID = gameID
 
   const width = window.innerWidth - margin.left - margin.right;
-  const height = window.innerHeight - margin.top - margin.bottom - 80;
+  const height = window.innerHeight - margin.top - margin.bottom - 250;
   const gameData = data[gameID]
   let shots = data[gameID]['shots_home']
-  shots = shots.filter((entry)=>{return entry.MAKE_MISS == 'MAKE'})
+  shots = shots.filter((entry)=>{return entry.MAKE_MISS == 'MAKE' })
+  shots = shots.filter((entry) => {
+      let q = entry['QUARTER']
+      let time_remaining = entry['TIME_REMAINING']
+      let splt = time_remaining.split(":")
+
+      let curtime = ((q>4)?(4*12*60+(q-4)*5*60) : q*12*60) - (parseInt(splt[0])*60+parseFloat(splt[1]))
+      return curtime < time
+    })
   currentGameID = gameID 
   d3.select('#game_id').text(gameData['home'] + " - " + gameData['visitor'] + " (" + gameData['date'] + ")");
-  let duration = 2000
+ 
   let image = svg
     .selectAll('g')
     .data(shots, (d, i) => {return (i) + (d.PLAYER) + (d.TIME_REMAINING) + (d.x) + (d.y) })
@@ -122,8 +137,95 @@ function updateShotChart(gameID) { // this will need to take time as input once 
           .remove())  
       }     
     )
-    
-    
-    
 }
-updateShotChart(currentGameID)    
+updateShotChart(currentGameID, currentTime)    
+
+/**
+ * SLIDER and PLAY BUTTON CODE
+ * 
+ */
+ let total_time = 30
+ const slider = () => {
+    var playButton = d3.select("#play-button");
+    var moving = false
+    var timer = 0 
+    var slider = d3
+    .sliderBottom()
+    .min(0)
+    .max(48*60)
+    .step(1)
+    .width(600)
+   // .tickFormat(d3.timeFormat('%x'))
+    .ticks(4)
+    //.default(0.015);
+    .handle(
+        d3.symbol()
+        .type(d3.symbolCircle)
+        .size(100)()
+    )
+    .displayValue(false)
+    .default(0)
+    .fill('black')
+    .on("onchange", (val) => {
+        slider.value(val);
+        updateShotChart(currentGameID, val)
+    })
+
+    function step() {
+        
+        
+        let nextTime = currentTime + 5
+        console.log(nextTime)
+        if (nextTime > 48*60) {
+            moving = false;
+            console.log("done" + currentTime)
+            clearInterval(timer);
+            timer = 0
+            playButton.text("Play")
+            d3.select('.paused').style('display', 'block');
+            d3.select('.playing').style('display', 'none');
+        } else {
+            console.log("notdone" + currentTime + ' -> ' + nextTime)
+            slider.value(nextTime)
+            updateShotChart(currentGameID, nextTime)
+        }
+        
+    }
+   
+   //var playButton = d3.select("#play-button");
+    playButton
+    .on("click", function() {
+        //var button = d3.select(this);
+        
+        if (playButton.text() == "Pause") {
+            moving = false;
+            clearInterval(timer);
+            timer = 0;
+            playButton.text("Play")
+            d3.select('.paused').style('display', 'block');
+            d3.select('.playing').style('display', 'none');
+        } else {
+            moving = true;
+           //console.log("interval: "+ (total_time/(48*60))*1000*5)
+           total_time = parseInt(document.getElementById('total-time').value)
+            timer = setInterval(step, (total_time/(48*60))*5*1000);
+            playButton.text("Pause");
+            d3.select('.playing').style('display', 'block');
+            d3.select('.paused').style('display', 'none');
+        }
+        
+    })
+
+    
+    
+
+
+    d3.select("#slider")
+    .append("svg")
+    .attr("width", 800)
+    .attr("height", 80)
+    .append("g")
+    .attr("transform", "translate(30,30)")
+    .call(slider);
+ }
+ slider()

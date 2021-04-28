@@ -5,10 +5,16 @@
 <link rel="stylesheet" href="./style.css">
 <body>
   <h1>Shot Chart for <span id="game_id"></span></h1>
+
   <select name="Game" id="choosegame">
 
   </select>
-  <div id="my_dataviz" style="height: calc(100% - 80px)"></div>
+  <div class="controls-container">
+    <button id="play-button">Play</button>
+    <div>Show Full Game in <input type="number" id="total-time" min="5" max="720" value="60"> seconds</div>
+  </div>
+  <div id="slider"></div>
+  <div id="my_dataviz" style="height: calc(100% - 250px)"></div>
 </body>
 <script src="https://d3js.org/d3.v6.js"></script>
 <script src="https://unpkg.com/d3-simple-slider"></script>
