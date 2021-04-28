@@ -5,7 +5,8 @@ const dataUrl = url("./shot_data_2016.json");
 const playerImagesUrl = url("./playerImages.json");
 let data = await d3.json(dataUrl)
 let playerImages = await d3.json(playerImagesUrl)
-
+var moving = false
+var timer = 0
 // ADD ALL GAMES TO THE SELECT
 let select = document.getElementById('choosegame')
 let firstGameId = ""
@@ -18,8 +19,21 @@ for (const gameId in data) {
    select.appendChild(option)
 }
 select.value = firstGameId 
+var playButton = d3.select("#play-button");
+function pause() {
+  moving = false;
+        console.log("done" + currentTime)
+        clearInterval(timer);
+        timer = 0
+        playButton.text("Play")
+        d3.select('.paused').style('display', 'block');
+        d3.select('.playing').style('display', 'none');
+}
+
 select.onchange = (event) => {
-   updateShotChart(event.target.value)
+   pause()
+   updateShotChart(event.target.value, 0)
+   console.log(currentGameID + " " + currentTime)
 }
 
 // Setting up variables that describe our chart's space.
@@ -38,12 +52,96 @@ var currentGameID = firstGameId
 var currentTime = 0 // time goes from 0 to 48*60
 
 /**
+ * SLIDER and PLAY BUTTON CODE
+ * 
+ */
+ let total_time = 30
+ let slider = -1
+ let sliderFunc = () => {
+    
+    
+     
+    slider = d3
+    .sliderBottom()
+    .min(0)
+    .max(48*60)
+    .step(1)
+    .width(600)
+   // .tickFormat(d3.timeFormat('%x'))
+    .ticks(4)
+    //.default(0.015);
+    .handle(
+        d3.symbol()
+        .type(d3.symbolCircle)
+        .size(100)()
+    )
+    .displayValue(false)
+    .default(0)
+    .fill('black')
+    .on("onchange", (val) => {
+        //slider.value(val);
+        updateShotChart(currentGameID, val)
+    })
+
+    function step() {
+        
+        
+        let nextTime = currentTime + 5
+        console.log(nextTime)
+        if (nextTime > 48*60) {
+            pause()
+        } else {
+            console.log("notdone" + currentTime + ' -> ' + nextTime)
+           
+            updateShotChart(currentGameID, nextTime)
+        }
+        
+    }
+   
+    
+   //var playButton = d3.select("#play-button");
+    playButton
+    .on("click", function() {
+        //var button = d3.select(this);
+        
+        if (playButton.text() == "Pause") {
+            pause()
+        } else {
+            moving = true;
+           //console.log("interval: "+ (total_time/(48*60))*1000*5)
+           total_time = parseInt(document.getElementById('total-time').value)
+           clearInterval(timer)
+            timer = setInterval(step, (total_time/(48*60))*5*1000);
+            playButton.text("Pause");
+            d3.select('.playing').style('display', 'block');
+            d3.select('.paused').style('display', 'none');
+        }
+        
+    })
+
+    
+    
+
+
+    d3.select("#slider")
+    .append("svg")
+    .attr("width", 800)
+    .attr("height", 80)
+    .append("g")
+    .attr("transform", "translate(30,30)")
+    .call(slider);
+ }
+
+
+ sliderFunc()
+
+/**
  * UPDATING THE SHOT CHART CODE 
  * @param {*} gameID 
  * @param {*} time 
  */
 function updateShotChart(gameID, time) { // this will need to take time as input once we animate
-  
+  slider.value(time)
   currentTime = time
   currentGameID = gameID
 
@@ -138,94 +236,5 @@ function updateShotChart(gameID, time) { // this will need to take time as input
       }     
     )
 }
+
 updateShotChart(currentGameID, currentTime)    
-
-/**
- * SLIDER and PLAY BUTTON CODE
- * 
- */
- let total_time = 30
- const slider = () => {
-    var playButton = d3.select("#play-button");
-    var moving = false
-    var timer = 0 
-    var slider = d3
-    .sliderBottom()
-    .min(0)
-    .max(48*60)
-    .step(1)
-    .width(600)
-   // .tickFormat(d3.timeFormat('%x'))
-    .ticks(4)
-    //.default(0.015);
-    .handle(
-        d3.symbol()
-        .type(d3.symbolCircle)
-        .size(100)()
-    )
-    .displayValue(false)
-    .default(0)
-    .fill('black')
-    .on("onchange", (val) => {
-        slider.value(val);
-        updateShotChart(currentGameID, val)
-    })
-
-    function step() {
-        
-        
-        let nextTime = currentTime + 5
-        console.log(nextTime)
-        if (nextTime > 48*60) {
-            moving = false;
-            console.log("done" + currentTime)
-            clearInterval(timer);
-            timer = 0
-            playButton.text("Play")
-            d3.select('.paused').style('display', 'block');
-            d3.select('.playing').style('display', 'none');
-        } else {
-            console.log("notdone" + currentTime + ' -> ' + nextTime)
-            slider.value(nextTime)
-            updateShotChart(currentGameID, nextTime)
-        }
-        
-    }
-   
-   //var playButton = d3.select("#play-button");
-    playButton
-    .on("click", function() {
-        //var button = d3.select(this);
-        
-        if (playButton.text() == "Pause") {
-            moving = false;
-            clearInterval(timer);
-            timer = 0;
-            playButton.text("Play")
-            d3.select('.paused').style('display', 'block');
-            d3.select('.playing').style('display', 'none');
-        } else {
-            moving = true;
-           //console.log("interval: "+ (total_time/(48*60))*1000*5)
-           total_time = parseInt(document.getElementById('total-time').value)
-            timer = setInterval(step, (total_time/(48*60))*5*1000);
-            playButton.text("Pause");
-            d3.select('.playing').style('display', 'block');
-            d3.select('.paused').style('display', 'none');
-        }
-        
-    })
-
-    
-    
-
-
-    d3.select("#slider")
-    .append("svg")
-    .attr("width", 800)
-    .attr("height", 80)
-    .append("g")
-    .attr("transform", "translate(30,30)")
-    .call(slider);
- }
- slider()
