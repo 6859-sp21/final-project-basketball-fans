@@ -49,7 +49,9 @@ var svg = d3
   .append("svg")
   .attr("width", "100%")
   .attr("height", "100%")
+  .attr("id", "my_svg")
   .append("g")
+  .attr("id", "court")
   .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
 var currentGameID = firstGameId
@@ -59,7 +61,8 @@ var currentTime = 0 // time goes from 0 to 48*60
  * SLIDER and PLAY BUTTON CODE
  * 
  */
- let total_time = 30
+ let total_time = 60
+ let interval_time = (total_time/(48*60))*5*1000
  let slider = -1
  let sliderFunc = () => {
     
@@ -115,7 +118,8 @@ var currentTime = 0 // time goes from 0 to 48*60
            //console.log("interval: "+ (total_time/(48*60))*1000*5)
            total_time = parseInt(document.getElementById('total-time').value)
             if(timer !== 0) timer.stop()
-            timer = d3.interval(step, (total_time/(48*60))*5*1000);
+            interval_time = (total_time/(48*60))*5*1000
+            timer = d3.interval(step, interval_time);
             playButton.text("Pause");
             d3.select('.playing').style('display', 'block');
             d3.select('.paused').style('display', 'none');
@@ -136,8 +140,9 @@ var currentTime = 0 // time goes from 0 to 48*60
     .call(slider);
  }
 
-
  sliderFunc()
+
+ 
 
 /**
  * UPDATING THE SHOT CHART CODE 
@@ -202,8 +207,8 @@ function updateShotChart(gameID, time) { // this will need to take time as input
           .attr('cy', 0)
           .duration(duration)
           .attr('r', 25)
-          .attr('cx', 20)
-          .attr('cy', 20)
+          .attr('cx', 0)
+          .attr('cy', 0)
           );
 
         g.append('clipPath')
@@ -216,8 +221,8 @@ function updateShotChart(gameID, time) { // this will need to take time as input
             .transition()
           .duration(duration)
           .attr('r', 20)
-          .attr('cx', 20)
-          .attr('cy', 20)
+          .attr('cx', 0)
+          .attr('cy', 0)
           );
           // THE RECT
         let image =  g.append('svg:image')
@@ -227,15 +232,54 @@ function updateShotChart(gameID, time) { // this will need to take time as input
           
           
         image.call(enter => enter
-            .attr('x', 0)
-            .attr('y', 0)
+            .attr('x', -20)
+            .attr('y', -20)
               .attr('width', 0)
               .attr('height', 0)
             .transition()
           .duration(duration)
           .attr('width', 40)
           .attr('height', 40))
+          
+          //TOOLTIP
+          g.append('text')
+          .text((d, i) => {
+            return d.PLAYER + " " + (d.MAKE_MISS ? "makes" : "misses") + " " + d.DISTANCE + " shot";
+          })
+          .attr("x", function (d) { return -50; })
+          .attr("y", function (d) { return 70; })
+          .attr("opacity", 0)
+          .call(enter => enter.transition()
+              .delay(duration/2).duration(duration/2)
+              .attr("opacity", 1)
+              )
+          /*.call(enter => enter.transition()
+          .delay(duration*2/2 + interval_time*5).duration(duration/2)
+          .attr("opacity", 0))*/
+         // .transition().delay(500).remove()
+         
+          g.call(e => e.attr("opacity", 1).transition().delay(duration + interval_time*5).duration(duration/2).attr("opacity", 0))
+          let point = enter.append("circle")
+          .attr('r', 0)
+          .attr('cx', 0)
+          .attr('cy', 0)
+          .attr('transform', function (d) { 
+            return "translate(" + 20*coord(d.x) + "," + 15*coord(d.y) + ")"
+          })
+          .attr('fill', (d)=>{return stringToColor(d.PLAYER)})
+          .attr('opacity', 0)
 
+         point.on("mouseover", function(event, d) {
+            g.attr('opacity', 1)
+            point.attr('opacity', 0)
+         })
+         point.on("mouseout", function(event, d) {
+          g.attr('opacity', 0)
+          point.attr('opacity', 1)
+        })
+
+
+          point.call(e => e.transition().delay(duration + interval_time*5).duration(duration/2).attr('r', 5).attr('opacity', 1))
         },
       update => update,
       exit => {

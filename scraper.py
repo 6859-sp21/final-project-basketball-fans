@@ -4,6 +4,7 @@ import sys
 import contextlib
 from io import StringIO
 from datetime import datetime
+from basketball_reference_scraper.pbp import get_pbp
 from basketball_reference_scraper.shot_charts import get_shot_chart
 from basketball_reference_scraper.seasons import get_schedule, get_standings
 from basketball_reference_scraper.players import get_stats, get_game_logs, get_player_headshot
@@ -52,6 +53,7 @@ def getRegularSeasonShots(year):
     for index, row in sched.iterrows():
         yr = row['DATE'].year
         gameId = getGameID(row['DATE'].strftime("%m/%d/%Y"), abbrev(row['HOME'], yr), abbrev(row['VISITOR'], yr))
+        print(gameId)
         dd = get_shot_chart(row['DATE'].strftime("%m/%d/%Y"), abbrev(row['HOME'], yr), abbrev(row['VISITOR'], yr))
         home_shots = json.loads(dd[abbrev(row['HOME'], yr)].to_json(orient='records'))
         visitor_shots = json.loads(dd[abbrev(row['VISITOR'], yr)].to_json(orient='records'))
@@ -76,4 +78,25 @@ def getRegularSeasonShots(year):
     with open(f'playerImages.json', 'w') as outfile:
         json.dump(playerImages, outfile)
 
-getRegularSeasonShots(2016)
+def getPlayByPlay(year):
+    sched = get_schedule(year, playoffs=False)
+    data = {}
+    for index, row in sched.iterrows():
+        yr = row['DATE'].year
+        gameId = getGameID(row['DATE'].strftime("%m/%d/%Y"), abbrev(row['HOME'], yr), abbrev(row['VISITOR'], yr))
+        print(gameId)
+        dd = get_pbp(row['DATE'].strftime("%m/%d/%Y"), abbrev(row['HOME'], yr), abbrev(row['VISITOR'], yr))
+        pbp = json.loads(dd.to_json(orient='records'))
+        data[gameId] = {
+            "date": row['DATE'].strftime("%m/%d/%Y"),
+            "home": row['HOME'],
+            "visitor": row['VISITOR'],
+            "play_by_play": pbp,
+            "game_id": gameId
+        }
+        
+    with open(f'play_by_play_data_{year}.json', 'w') as outfile:
+        json.dump(data, outfile)
+    #with open(f'playerImages.json', 'w') as outfile:
+       # json.dump(playerImages, outfile)
+getPlayByPlay(2016)
