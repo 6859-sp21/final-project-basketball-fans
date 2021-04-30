@@ -285,6 +285,7 @@ function updateShotChart(gameID, time) { // this will need to take time as input
         },
       update => update,
       exit => {
+        
           exit.select("image").call(exit1 => exit1.transition().duration(duration)
           .attr('width', 0)
           .attr('height', 0)
@@ -297,11 +298,11 @@ function updateShotChart(gameID, time) { // this will need to take time as input
           .attr('r', 0)
           )
           
-          exit.select(".shotpoint").transition().delay(duration).duration(duration/2)
-          .attr('opacity', 0)
-          .attr('r', 0)
+          exit.select(".shotpoint").call(exit1 => exit1.transition().delay(duration).duration(duration/2)
+          .attr('r', 0).remove())
          
-
+          exit.select("g").call(exit1 => exit1.transition().delay(duration*3/2)
+          .remove()) 
           exit.call(exit1 => exit1.transition().delay(duration*3/2)
               .remove())  
       }     
