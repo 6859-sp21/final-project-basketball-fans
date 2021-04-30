@@ -191,6 +191,16 @@ function updateShotChart(gameID, time) { // this will need to take time as input
     .join(
       enter => {
         // G IS THE GROUP OF IMAGE AND TEXT/RECTANGLE
+        let point = enter.append('circle')
+          .attr('class', 'shotpoint')
+          .attr('r', 0)
+          .attr('cx', 0)
+          .attr('cy', 0)
+          .attr('transform', function (d) { 
+            return "translate(" + 20*coord(d.x) + "," + 15*coord(d.y) + ")"
+          })
+          .attr('fill', (d)=>{return stringToColor(d.PLAYER)})
+          .attr('opacity', 0)
         let g = enter.append('g').attr("overflow", "hidden");
         //console.log(shots)
         g.call(enter => enter.transition().duration(duration)
@@ -199,7 +209,7 @@ function updateShotChart(gameID, time) { // this will need to take time as input
         }))
 
         g.append('circle')
-          
+          .attr('class', 'border')
           .attr('fill', (d)=>{return stringToColor(d.PLAYER)})
           .call(enter => enter.transition()
           .attr('r', 0)
@@ -259,15 +269,7 @@ function updateShotChart(gameID, time) { // this will need to take time as input
          // .transition().delay(500).remove()
          
           g.call(e => e.attr("opacity", 1).transition().delay(duration + interval_time*5).duration(duration/2).attr("opacity", 0))
-          let point = enter.append("circle")
-          .attr('r', 0)
-          .attr('cx', 0)
-          .attr('cy', 0)
-          .attr('transform', function (d) { 
-            return "translate(" + 20*coord(d.x) + "," + 15*coord(d.y) + ")"
-          })
-          .attr('fill', (d)=>{return stringToColor(d.PLAYER)})
-          .attr('opacity', 0)
+          
 
          point.on("mouseover", function(event, d) {
             g.attr('opacity', 1)
@@ -287,16 +289,21 @@ function updateShotChart(gameID, time) { // this will need to take time as input
           .attr('width', 0)
           .attr('height', 0)
           )
-          exit.select("circle").call(exit1 => exit1.transition().duration(duration)
+          exit.select(".border").call(exit1 => exit1.transition().duration(duration)
           .attr('r', 0)
           )
 
           exit.select("clipPath").select("circle").call(exit1 => exit1.transition().duration(duration)
           .attr('r', 0)
           )
+          
+          exit.select(".shotpoint").transition().delay(duration).duration(duration/2)
+          .attr('opacity', 0)
+          .attr('r', 0)
+         
 
-          exit.call(exit1 => exit1.transition().delay(duration)
-          .remove())  
+          exit.call(exit1 => exit1.transition().delay(duration*3/2)
+              .remove())  
       }     
     )
 }
