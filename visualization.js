@@ -186,29 +186,32 @@ function updateShotChart(gameID, time) { // this will need to take time as input
   d3.select('#game_id').text(gameData['home'] + " - " + gameData['visitor'] + " (" + gameData['date'] + ")");
  
   let image = svg
-    .selectAll('g')
+    .selectAll('.shot')
     .data(shots, (d, i) => {return (i) + (d.PLAYER) + (d.TIME_REMAINING) + (d.x) + (d.y) })
     .join(
       enter => {
         // G IS THE GROUP OF IMAGE AND TEXT/RECTANGLE
-        let point = enter.append('circle')
-          .attr('class', 'shotpoint')
-          .attr('r', 0)
-          .attr('cx', 0)
-          .attr('cy', 0)
-          .attr('transform', function (d) { 
-            return "translate(" + 20*coord(d.x) + "," + 15*coord(d.y) + ")"
-          })
-          .attr('fill', (d)=>{return stringToColor(d.PLAYER)})
-          .attr('opacity', 0)
-        let g = enter.append('g').attr("overflow", "hidden");
+        let g = enter.append('g').attr("class", "shot").attr("overflow", "hidden");
         //console.log(shots)
         g.call(enter => enter.transition().duration(duration)
         .attr('transform', function (d) { 
           return "translate(" + 20*coord(d.x) + "," + 15*coord(d.y) + ")"
         }))
 
-        g.append('circle')
+        let point = g.append('circle')
+          .attr('class', 'shotpoint')
+          .attr('r', 0)
+          .attr('cx', 0)
+          .attr('cy', 0)
+          // .attr('transform', function (d) { 
+          //   return "translate(" + 20*coord(d.x) + "," + 15*coord(d.y) + ")"
+          // })
+          .attr('fill', (d)=>{return stringToColor(d.PLAYER)});
+          // .attr('opacity', 0);
+
+        let tooltip = g.append('g').attr('class', 'tooltip');
+
+        tooltip.append('circle')
           .attr('class', 'border')
           .attr('fill', (d)=>{return stringToColor(d.PLAYER)})
           .call(enter => enter.transition()
@@ -221,7 +224,7 @@ function updateShotChart(gameID, time) { // this will need to take time as input
           .attr('cy', 0)
           );
 
-        g.append('clipPath')
+        tooltip.append('clipPath')
           .attr('id', (d,i) => gameID + '_' + i)
           .append('circle')
           .call(enter => enter
@@ -235,7 +238,7 @@ function updateShotChart(gameID, time) { // this will need to take time as input
           .attr('cy', 0)
           );
           // THE RECT
-        let image =  g.append('svg:image')
+        let image =  tooltip.append('svg:image')
            .attr('xlink:href', function (d) {return playerImages[d.PLAYER] } )
           .attr("preserveAspectRatio", "xMinYMin slice")
           .attr('clip-path', (d,i) => `url(#${gameID + '_' + i})`)
@@ -252,7 +255,7 @@ function updateShotChart(gameID, time) { // this will need to take time as input
           .attr('height', 40))
           
           //TOOLTIP
-          g.append('text')
+          tooltip.append('text')
           .text((d, i) => {
             return d.PLAYER + " " + (d.MAKE_MISS ? "makes" : "misses") + " " + d.DISTANCE + " shot";
           })
@@ -268,43 +271,35 @@ function updateShotChart(gameID, time) { // this will need to take time as input
           .attr("opacity", 0))*/
          // .transition().delay(500).remove()
          
-          g.call(e => e.attr("opacity", 1).transition().delay(duration + interval_time*5).duration(duration/2).attr("opacity", 0))
+          tooltip.call(e => e.attr("opacity", 1).transition().delay(duration + interval_time*5).duration(duration/2).attr("opacity", 0))
           
 
-         point.on("mouseover", function(event, d) {
-            g.attr('opacity', 1)
+          point.on("mouseover", function(event, d) {
+            tooltip.attr('opacity', 1)
             point.attr('opacity', 0)
-         })
-         point.on("mouseout", function(event, d) {
-          g.attr('opacity', 0)
-          point.attr('opacity', 1)
-        })
+          })
+          point.on("mouseout", function(event, d) {
+            tooltip.attr('opacity', 0)
+            point.attr('opacity', 1)
+          })
 
 
           point.call(e => e.transition().delay(duration + interval_time*5).duration(duration/2).attr('r', 5).attr('opacity', 1))
         },
       update => update,
       exit => {
-        
-          exit.select("image").call(exit1 => exit1.transition().duration(duration)
-          .attr('width', 0)
-          .attr('height', 0)
-          )
           exit.select(".border").call(exit1 => exit1.transition().duration(duration)
           .attr('r', 0)
-          )
+          );
 
           exit.select("clipPath").select("circle").call(exit1 => exit1.transition().duration(duration)
           .attr('r', 0)
-          )
+          );
           
-          exit.select(".shotpoint").call(exit1 => exit1.transition().delay(duration).duration(duration/2)
-          .attr('r', 0).remove())
-         
-          exit.select("g").call(exit1 => exit1.transition().delay(duration*3/2)
-          .remove()) 
-          exit.call(exit1 => exit1.transition().delay(duration*3/2)
-              .remove())  
+          exit.select(".shotpoint").call(exit1 => exit1.transition().duration(duration)
+            .attr('r', 0).remove());
+
+          exit.call(exit1 => exit1.transition().delay(duration).remove());
       }     
     )
 }
