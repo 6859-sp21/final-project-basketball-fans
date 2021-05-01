@@ -1,0 +1,36 @@
+<!DOCTYPE html style="height: 100%">
+<meta charset="utf-8" />
+<!-- <link rel="icon" href="./favicon.ico" type="image/x-icon">  -->
+<!-- <link rel="shortcut icon" href="./favicon.ico" type="image/x-icon"> -->
+<link rel="stylesheet" href="./style.css">
+<body>
+  <h1>Shot Chart for <span id="game_id"></span></h1>
+
+  <select name="Game" id="choosegame">
+
+  </select>
+  <div class="controls-container">
+    <button id="play-button">Play</button>
+    <div>Show Full Game in <input type="number" id="total-time" min="5" max="720" value="60"> seconds</div>
+  </div>
+  <div id="slider"></div>
+  <div id="scoreboard" class="scoreboard">
+    <div id="home-score">
+      <p id="home-name">Home</p>
+      <p id="threes">Threes: 0</p>
+      <p id="twos">Twos: 0</p>
+    </div>
+    <div id="visitor-score">
+      <p id="visitor-name">Visitor</p>
+      <p id="threes">Threes: 0</p>
+      <p id="twos">Twos: 0</p>
+    </div>
+  </div>
+  <div id="my_dataviz" style="height: calc(100% - 250px)"></div>
+</body>
+<script src="https://d3js.org/d3.v6.js"></script>
+<script src="https://unpkg.com/d3-simple-slider"></script>
+<script type="module" src="visualization.js">
+                 
+
+</script>
