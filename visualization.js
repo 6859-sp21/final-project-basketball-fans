@@ -111,7 +111,7 @@ var currentTime = 0 // time goes from 0 to 48*60
     .on("click", function() {
         //var button = d3.select(this);
         
-        if (playButton.text() == "Pause") {
+        if (playButton.text() === "Pause") {
             pause()
         } else {
             moving = true;
@@ -163,7 +163,7 @@ function updateShotChart(gameID, time) { // this will need to take time as input
   const gameData = data[gameID]
   let shots = data[gameID]['shots_home']
   shots = shots.concat(data[gameID]['shots_visitor'])
-  shots = shots.filter((entry)=>{return entry.MAKE_MISS == 'MAKE' })
+  shots = shots.filter((entry)=>{return entry.MAKE_MISS === 'MAKE' })
   shots = shots.filter((entry) => {
       let q = entry['QUARTER']
       let time_remaining = entry['TIME_REMAINING']
@@ -203,7 +203,7 @@ function updateShotChart(gameID, time) { // this will need to take time as input
         g.call(enter => enter.transition().duration(duration)
         .attr('transform', function (d) {
           // d.x and d.y are relative to left corner of court when facing hoop
-          if (d.TEAM == "home" && d.QUARTER > 2 || d.TEAM == "visitor" && d.QUARTER <= 2) {
+          if (d.TEAM === "home") {
             var x = courtRect.left - svgRect.left - margin.left + (coord(d.y) + HOOP_OFFSET_FT)/COURT_WIDTH_FT * courtRect.width;
             var y = courtRect.top + courtRect.height - svgRect.top - margin.top - coord(d.x)/COURT_HEIGHT_FT * courtRect.height;
           } else {
@@ -212,6 +212,11 @@ function updateShotChart(gameID, time) { // this will need to take time as input
           }
           return "translate(" + x + "," + y + ")";
         }))
+
+        
+          // .attr('opacity', 0);
+
+        let tooltip = g.append('g').attr('class', 'tooltip');
 
         let point = g.append('circle')
           .attr('class', 'shotpoint')
@@ -222,12 +227,10 @@ function updateShotChart(gameID, time) { // this will need to take time as input
           //   return "translate(" + 20*coord(d.x) + "," + 15*coord(d.y) + ")"
           // })
           .attr('fill', (d)=>{return stringToColor(d.PLAYER)});
-          // .attr('opacity', 0);
-
-        let tooltip = g.append('g').attr('class', 'tooltip');
 
         tooltip.append('circle')
           .attr('class', 'border')
+          .attr('pointer-events', 'none')
           .attr('fill', (d)=>{return stringToColor(d.PLAYER)})
           .call(enter => enter.transition()
           .attr('r', 0)
@@ -240,6 +243,7 @@ function updateShotChart(gameID, time) { // this will need to take time as input
           );
 
         tooltip.append('clipPath')
+        .attr('pointer-events', 'none')
           .attr('id', (d,i) => gameID + '_' + i)
           .append('circle')
           .call(enter => enter
@@ -254,6 +258,7 @@ function updateShotChart(gameID, time) { // this will need to take time as input
           );
           // THE RECT
         let image =  tooltip.append('svg:image')
+        .attr('pointer-events', 'none')
            .attr('xlink:href', function (d) {return playerImages[d.PLAYER] } )
           .attr("preserveAspectRatio", "xMinYMin slice")
           .attr('clip-path', (d,i) => `url(#${gameID + '_' + i})`)
@@ -271,11 +276,12 @@ function updateShotChart(gameID, time) { // this will need to take time as input
           
           //TOOLTIP
           tooltip.append('text')
+          .attr('pointer-events', 'none')
           .text((d, i) => {
             return d.PLAYER + " " + (d.MAKE_MISS ? "makes" : "misses") + " " + d.DISTANCE + " shot";
           })
           .attr("x", function (d) { return -50; })
-          .attr("y", function (d) { return 70; })
+          .attr("y", function (d) { return 50; })
           .attr("opacity", 0)
           .call(enter => enter.transition()
               .delay(duration/2).duration(duration/2)
@@ -290,25 +296,24 @@ function updateShotChart(gameID, time) { // this will need to take time as input
           
 
           point.on("mouseover", function(event, d) {
-            tooltip.attr('opacity', 1)
-            point.attr('opacity', 0)
+            tooltip.attr('opacity', (d2,i)=>{return d.PLAYER === d2.PLAYER ? 1 : 0})
+            point.attr('opacity', (d2,i)=>{return d.PLAYER === d2.PLAYER ? 0 : 1})
           })
           point.on("mouseout", function(event, d) {
-            tooltip.attr('opacity', 0)
-            point.attr('opacity', 1)
+            tooltip.attr('opacity', (d2,i)=>{return 0})
+            point.attr('opacity', (d2,i)=>{return 1})
           })
-
 
           point.call(e => e.transition().delay(duration + interval_time*5).duration(duration/2).attr('r', 5).attr('opacity', 1))
         },
       update => {
-        if(oldCourtRect.top == courtRect.top && oldCourtRect.left == courtRect.left) {
+        if(oldCourtRect.top === courtRect.top && oldCourtRect.left === courtRect.left) {
           return
         } 
         oldCourtRect = courtRect
         update.call(upd => upd.transition().duration(duration).attr('transform', function (d) {
           // d.x and d.y are relative to left corner of court when facing hoop
-          if (d.TEAM == "home" && d.QUARTER > 2 || d.TEAM == "visitor" && d.QUARTER <= 2) {
+          if (d.TEAM === "home") {
             var x = courtRect.left - svgRect.left - margin.left + (coord(d.y) + HOOP_OFFSET_FT)/COURT_WIDTH_FT * courtRect.width;
             var y = courtRect.top + courtRect.height - svgRect.top - margin.top - coord(d.x)/COURT_HEIGHT_FT * courtRect.height;
           } else {

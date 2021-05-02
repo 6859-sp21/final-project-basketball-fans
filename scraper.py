@@ -99,4 +99,4 @@ def getPlayByPlay(year):
         json.dump(data, outfile)
     #with open(f'playerImages.json', 'w') as outfile:
        # json.dump(playerImages, outfile)
-getPlayByPlay(2016)
+getRegularSeasonShots(2016)
