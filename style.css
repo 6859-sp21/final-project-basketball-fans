@@ -5,6 +5,25 @@
     align-items: center;
 }
 
+.court-image-container {
+    position: absolute;
+    z-index: -1;
+    top: 150px;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+}
+
+.court-image {
+    filter: hue-rotate(-30deg) brightness(2.7) saturate(0.75);
+    transform: rotate(90deg);
+    width: 500px;
+}
+
 div.scoreboard div {
     margin-right: 50px;
+}
+
+#my_svg {
+    overflow: visible;
 }

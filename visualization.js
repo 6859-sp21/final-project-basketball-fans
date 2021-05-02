@@ -143,6 +143,9 @@ var currentTime = 0 // time goes from 0 to 48*60
  sliderFunc()
 
  
+const COURT_HEIGHT_FT = 50;
+const COURT_WIDTH_FT = 94;
+const HOOP_OFFSET_FT = 4;
 
 /**
  * UPDATING THE SHOT CHART CODE 
@@ -184,7 +187,10 @@ function updateShotChart(gameID, time) { // this will need to take time as input
 
   currentGameID = gameID 
   d3.select('#game_id').text(gameData['home'] + " - " + gameData['visitor'] + " (" + gameData['date'] + ")");
- 
+  
+  const courtRect = document.querySelector('.court-image').getBoundingClientRect();
+  const svgRect = document.getElementById('my_svg').getBoundingClientRect();
+
   let image = svg
     .selectAll('.shot')
     .data(shots, (d, i) => {return (i) + (d.PLAYER) + (d.TIME_REMAINING) + (d.x) + (d.y) })
@@ -194,8 +200,16 @@ function updateShotChart(gameID, time) { // this will need to take time as input
         let g = enter.append('g').attr("class", "shot").attr("overflow", "hidden");
         //console.log(shots)
         g.call(enter => enter.transition().duration(duration)
-        .attr('transform', function (d) { 
-          return "translate(" + 20*coord(d.x) + "," + 15*coord(d.y) + ")"
+        .attr('transform', function (d) {
+          // d.x and d.y are relative to left corner of court when facing hoop
+          if (d.TEAM == "home" && d.QUARTER > 2 || d.TEAM == "visitor" && d.QUARTER <= 2) {
+            var x = courtRect.left - svgRect.left - margin.left + (coord(d.y) + HOOP_OFFSET_FT)/COURT_WIDTH_FT * courtRect.width;
+            var y = courtRect.top + courtRect.height - svgRect.top - margin.top - coord(d.x)/COURT_HEIGHT_FT * courtRect.height;
+          } else {
+            var x = courtRect.left + courtRect.width - svgRect.left - margin.left - (coord(d.y) + HOOP_OFFSET_FT)/COURT_WIDTH_FT * courtRect.width;
+            var y = courtRect.top - svgRect.top - margin.top + coord(d.x)/COURT_HEIGHT_FT * courtRect.height;
+          }
+          return "translate(" + x + "," + y + ")";
         }))
 
         let point = g.append('circle')
