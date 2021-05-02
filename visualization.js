@@ -23,7 +23,7 @@ var playButton = d3.select("#play-button");
 var playButtonDOM = document.getElementById("play-button");
 function pause() {
   moving = false;
-        console.log("done" + currentTime)
+        //console.log("done" + currentTime)
         if(timer != 0) timer.stop();
         timer = 0
         playButton.text("Play")
@@ -37,7 +37,7 @@ function pause() {
 select.onchange = (event) => {
    pause()
    updateShotChart(event.target.value, 0)
-   console.log(currentGameID + " " + currentTime)
+   //console.log(currentGameID + " " + currentTime)
 }
 
 // Setting up variables that describe our chart's space.
@@ -94,11 +94,11 @@ var currentTime = 0 // time goes from 0 to 48*60
         
         
         let nextTime = currentTime + 5
-        console.log(nextTime)
+       // console.log(nextTime)
         if (nextTime > 48*60) {
             pause()
         } else {
-            console.log("notdone" + currentTime + ' -> ' + nextTime)
+            //console.log("notdone" + currentTime + ' -> ' + nextTime)
            
             updateShotChart(currentGameID, nextTime)
         }
@@ -152,6 +152,7 @@ const HOOP_OFFSET_FT = 4;
  * @param {*} gameID 
  * @param {*} time 
  */
+let oldCourtRect = {top: -1, left: -1}
 function updateShotChart(gameID, time) { // this will need to take time as input once we animate
   slider.value(time)
   currentTime = time
@@ -190,10 +191,10 @@ function updateShotChart(gameID, time) { // this will need to take time as input
   
   const courtRect = document.querySelector('.court-image').getBoundingClientRect();
   const svgRect = document.getElementById('my_svg').getBoundingClientRect();
-
+  
   let image = svg
     .selectAll('.shot')
-    .data(shots, (d, i) => {return (i) + (d.PLAYER) + (d.TIME_REMAINING) + (d.x) + (d.y) })
+    .data(shots, (d, i) => {return (d.PLAYER) + (d.TIME_REMAINING) + (d.x) + (d.y) })
     .join(
       enter => {
         // G IS THE GROUP OF IMAGE AND TEXT/RECTANGLE
@@ -301,6 +302,10 @@ function updateShotChart(gameID, time) { // this will need to take time as input
           point.call(e => e.transition().delay(duration + interval_time*5).duration(duration/2).attr('r', 5).attr('opacity', 1))
         },
       update => {
+        if(oldCourtRect.top == courtRect.top && oldCourtRect.left == courtRect.left) {
+          return
+        } 
+        oldCourtRect = courtRect
         update.call(upd => upd.transition().duration(duration).attr('transform', function (d) {
           // d.x and d.y are relative to left corner of court when facing hoop
           if (d.TEAM == "home" && d.QUARTER > 2 || d.TEAM == "visitor" && d.QUARTER <= 2) {
