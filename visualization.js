@@ -296,12 +296,12 @@ function updateShotChart(gameID, time) { // this will need to take time as input
           
 
           point.on("mouseover", function(event, d) {
-            tooltip.attr('opacity', (d2,i)=>{return d.PLAYER === d2.PLAYER ? 1 : 0})
-            point.attr('opacity', (d2,i)=>{return d.PLAYER === d2.PLAYER ? 0 : 1})
+            d3.selectAll('.tooltip').attr('opacity', (d2,i)=>{return d.PLAYER === d2.PLAYER ? 1 : 0})
+            d3.selectAll('.shotpoint').attr('opacity', (d2,i)=>{return d.PLAYER === d2.PLAYER ? 0 : 0.2})
           })
           point.on("mouseout", function(event, d) {
-            tooltip.attr('opacity', (d2,i)=>{return 0})
-            point.attr('opacity', (d2,i)=>{return 1})
+            d3.selectAll('.tooltip').attr('opacity', (d2,i)=>{return 0})
+            d3.selectAll('.shotpoint').attr('opacity', (d2,i)=>{return 1})
           })
 
           point.call(e => e.transition().delay(duration + interval_time*5).duration(duration/2).attr('r', 5).attr('opacity', 1))
