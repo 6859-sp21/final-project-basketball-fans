@@ -300,7 +300,19 @@ function updateShotChart(gameID, time) { // this will need to take time as input
 
           point.call(e => e.transition().delay(duration + interval_time*5).duration(duration/2).attr('r', 5).attr('opacity', 1))
         },
-      update => update,
+      update => {
+        update.call(upd => upd.transition().duration(duration).attr('transform', function (d) {
+          // d.x and d.y are relative to left corner of court when facing hoop
+          if (d.TEAM == "home" && d.QUARTER > 2 || d.TEAM == "visitor" && d.QUARTER <= 2) {
+            var x = courtRect.left - svgRect.left - margin.left + (coord(d.y) + HOOP_OFFSET_FT)/COURT_WIDTH_FT * courtRect.width;
+            var y = courtRect.top + courtRect.height - svgRect.top - margin.top - coord(d.x)/COURT_HEIGHT_FT * courtRect.height;
+          } else {
+            var x = courtRect.left + courtRect.width - svgRect.left - margin.left - (coord(d.y) + HOOP_OFFSET_FT)/COURT_WIDTH_FT * courtRect.width;
+            var y = courtRect.top - svgRect.top - margin.top + coord(d.x)/COURT_HEIGHT_FT * courtRect.height;
+          }
+          return "translate(" + x + "," + y + ")";
+        }))
+      },
       exit => {
           exit.select(".border").call(exit1 => exit1.transition().duration(duration)
           .attr('r', 0)
