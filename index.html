@@ -2,38 +2,64 @@
 <meta charset="utf-8" />
 <!-- <link rel="icon" href="./favicon.ico" type="image/x-icon">  -->
 <!-- <link rel="shortcut icon" href="./favicon.ico" type="image/x-icon"> -->
-<link rel="stylesheet" href="./style.css">
+<link rel="stylesheet" href="./style.css" />
 <body>
-  <h1>Shot Chart for <span id="game_id"></span></h1>
+  <div id="main-container">
 
-  <select name="Game" id="choosegame">
+    <div id="main-panel">
+      <h1>Shot Chart for <span id="game_id"></span></h1>
+      <select name="Game" id="choosegame"></select>
+      <div class="controls-container">
+        <button id="play-button">Play</button>
+        <div>
+          Show Full Game in
+          <input type="number" id="total-time" min="5" max="720" value="60" />
+          seconds
+        </div>
+      </div>
+      <div id="slider"></div>
+      <div class="court-image-container">
+        <img
+          class="court-image"
+          src="https://upload.wikimedia.org/wikipedia/commons/b/be/Basketball_court_fiba.svg"
+        />
+      </div>
+      <div id="my_dataviz" style="height: calc(100% - 250px)"></div>
+    </div>
 
-  </select>
-  <div class="controls-container">
-    <button id="play-button">Play</button>
-    <div>Show Full Game in <input type="number" id="total-time" min="5" max="720" value="60"> seconds</div>
-  </div>
-  <div id="slider"></div>
-  <div id="scoreboard" class="scoreboard">
-    <div id="home-score">
-      <p id="home-name">Home</p>
-      <p id="threes">Threes: 0</p>
-      <p id="twos">Twos: 0</p>
+    <div id="side-panel">
+      <div id="scoreboard" class="scoreboard">
+        <div id="home-score">
+          <div id="name-and-logo" class="name-and-logo">
+            <p id="home-name">Home</p>
+            <img
+              class="team-image"
+              src="https://thumbor.forbes.com/thumbor/fit-in/416x416/filters%3Aformat%28jpg%29/https%3A%2F%2Fspecials-images.forbesimg.com%2Fimageserve%2F5ed00f17d4a99d0006d2e738%2F0x0.jpg%3Fbackground%3D000000%26cropX1%3D154%26cropX2%3D4820%26cropY1%3D651%26cropY2%3D5314"
+            />
+          </div>
+          <p id="score">0</p>
+          <!-- <p id="threes">Threes: 0</p>
+          <p id="twos">Twos: 0</p> -->
+        </div>
+        <div id="visitor-score">
+          <div id="name-and-logo" class="name-and-logo">
+            <p id="visitor-name">Visitor</p>
+            <img
+              class="team-image"
+              src="https://thumbor.forbes.com/thumbor/fit-in/416x416/filters%3Aformat%28jpg%29/https%3A%2F%2Fspecials-images.forbesimg.com%2Fimageserve%2F5ed00f17d4a99d0006d2e738%2F0x0.jpg%3Fbackground%3D000000%26cropX1%3D154%26cropX2%3D4820%26cropY1%3D651%26cropY2%3D5314"
+            />
+          </div>
+          <p id="score">0</p>
+          <!-- <p id="threes">Threes: 0</p>
+          <p id="twos">Twos: 0</p> -->
+        </div>
+      </div>
+      <!-- <div id="player-list" class="player-list">
+      </div> -->
     </div>
-    <div id="visitor-score">
-      <p id="visitor-name">Visitor</p>
-      <p id="threes">Threes: 0</p>
-      <p id="twos">Twos: 0</p>
-    </div>
+    
   </div>
-  <div class="court-image-container">
-    <img class="court-image" src="https://upload.wikimedia.org/wikipedia/commons/b/be/Basketball_court_fiba.svg">
-  </div>
-  <div id="my_dataviz" style="height: calc(100% - 250px)"></div>
 </body>
 <script src="https://d3js.org/d3.v6.js"></script>
 <script src="https://unpkg.com/d3-simple-slider"></script>
-<script type="module" src="visualization.js">
-                 
-
-</script>
+<script type="module" src="visualization.js"></script>

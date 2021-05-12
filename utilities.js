@@ -26,14 +26,18 @@ const aggregateShots = (shots) => {
     var homeCountOfTwos = 0
     var visitorCountOfThrees = 0
     var visitorCountOfTwos = 0
+    var homeScore = 0
+    var visitorScore = 0
     for (var i = 0; i < shots.length; i++) {
         if (shots[i]['TEAM'] === 'home') {
+            homeScore += shots[i]['VALUE']
             if (shots[i]['VALUE'] === 2) {
                 homeCountOfTwos++
             } else if (shots[i]['VALUE'] === 3) {
                 homeCountOfThrees++
             }
         } else if (shots[i]['TEAM'] === 'visitor') {
+            visitorScore += shots[i]['VALUE']
             if (shots[i]['VALUE'] === 2) {
                 visitorCountOfTwos++
             } else if (shots[i]['VALUE'] === 3) {
@@ -41,9 +45,43 @@ const aggregateShots = (shots) => {
             }
         }
     }
-    return [homeCountOfThrees, homeCountOfTwos, visitorCountOfThrees, visitorCountOfTwos]
+    return [homeCountOfThrees, homeCountOfTwos, visitorCountOfThrees, visitorCountOfTwos, homeScore, visitorScore]
+}
+
+const aggregatePlayerListData = (shots) => {
+    var playersData = {}
+    for (var i = 0; i < shots.length; i++) {
+        var playerName = shots[i]['PLAYER']
+        if (playersData.hasOwnProperty(playerName)) {
+            playersData[playerName]['SHOTS_MADE'] += 1
+            playersData[playerName]['POINTS_SCORED'] += shots[i]['VALUE']
+            var shotDistanceInt = parseInt(shots[i]['DISTANCE'].split(" ")[0])
+            var currentFarthestShotDistanceInt = parseInt(playersData[playerName]['FARTHEST_SHOT_MADE'].split(" ")[0])
+            if (shotDistanceInt > currentFarthestShotDistanceInt) {
+                playersData[playerName]['FARTHEST_SHOT_MADE'] = shots[i]['DISTANCE']
+            }
+        } else {
+            playersData[playerName] = {}
+            playersData[playerName]['SHOTS_MADE'] = 1
+            playersData[playerName]['POINTS_SCORED'] = shots[i]['VALUE']
+            playersData[playerName]['FARTHEST_SHOT_MADE'] = shots[i]['DISTANCE']
+        }
+    }
+    var topPlayersList = []
+
+    for (var property in playersData) {
+        var newPlayer = {'PLAYER': property, 'SHOTS_MADE': playersData[property]['SHOTS_MADE'], 'POINTS_SCORED': playersData[property]['POINTS_SCORED'], 'FARTHEST_SHOT_MADE': playersData[property]['FARTHEST_SHOT_MADE']}
+        topPlayersList.push(newPlayer)
+    }
+
+    topPlayersList.sort((a, b) => (a['POINTS_SCORED'] < b['POINTS_SCORED']) ? 1 : -1)
+    if (topPlayersList.length > 10) {
+        topPlayersList = topPlayersList.slice(0, 10)
+    }
+
+    return topPlayersList
 }
 
 const duration = 1000
 const sliderDuration = 500
-export {stringToColor, coord, url, duration, sliderDuration, aggregateShots}
+export {stringToColor, coord, url, duration, sliderDuration, aggregateShots, aggregatePlayerListData}

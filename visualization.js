@@ -1,4 +1,4 @@
-import {stringToColor, coord, url, duration, sliderDuration, aggregateShots} from "./utilities.js"
+import {stringToColor, coord, url, duration, sliderDuration, aggregateShots, aggregatePlayerListData} from "./utilities.js"
 
 // GET DATA
 const dataUrl = url("./shot_data_2016.json");
@@ -56,6 +56,17 @@ var svg = d3
 
 var currentGameID = firstGameId
 var currentTime = 0 // time goes from 0 to 48*60
+
+/**
+ * SIDE Panel Play List Code
+ * 
+ */
+
+var div = d3
+  .select("#side-panel")
+  .append("div")
+  .attr("id", "player-list")
+  .attr("class", "player-list")
 
 /**
  * SLIDER and PLAY BUTTON CODE
@@ -142,6 +153,8 @@ var currentTime = 0 // time goes from 0 to 48*60
 
  sliderFunc()
 
+
+
  
 const COURT_HEIGHT_FT = 50;
 const COURT_WIDTH_FT = 94;
@@ -175,16 +188,17 @@ function updateShotChart(gameID, time) { // this will need to take time as input
   })
   shots.sort((a, b) => (a['sorttime'] > b['sorttime']) ? 1 : -1)
 
-  var [homeCountOfThrees, homeCountOfTwos, visitorCountOfThrees, visitorCountOfTwos] = aggregateShots(shots)
+  var [homeCountOfThrees, homeCountOfTwos, visitorCountOfThrees, visitorCountOfTwos, homeScore, visitorScore] = aggregateShots(shots)
 
   d3.select('#scoreboard').select('#home-score').select('#home-name').text(gameData['home'])
-  d3.select('#scoreboard').select('#home-score').select('#threes').text(`Threes: ${homeCountOfThrees}`)
-  d3.select('#scoreboard').select('#home-score').select('#twos').text(`Twos: ${homeCountOfTwos}`)
+  d3.select('#scoreboard').select('#home-score').select('#score').text(`${homeScore}`)
+  // d3.select('#scoreboard').select('#home-score').select('#threes').text(`Threes: ${homeCountOfThrees}`)
+  // d3.select('#scoreboard').select('#home-score').select('#twos').text(`Twos: ${homeCountOfTwos}`)
 
   d3.select('#scoreboard').select('#visitor-score').select('#visitor-name').text(gameData['visitor'])
-  d3.select('#scoreboard').select('#visitor-score').select('#threes').text(`Threes: ${visitorCountOfThrees}`)
-  d3.select('#scoreboard').select('#visitor-score').select('#twos').text(`Twos: ${visitorCountOfTwos}`)
-
+  d3.select('#scoreboard').select('#visitor-score').select('#score').text(`${visitorScore}`)
+  // d3.select('#scoreboard').select('#visitor-score').select('#threes').text(`Threes: ${visitorCountOfThrees}`)
+  // d3.select('#scoreboard').select('#visitor-score').select('#twos').text(`Twos: ${visitorCountOfTwos}`)
 
   currentGameID = gameID 
   d3.select('#game_id').text(gameData['home'] + " - " + gameData['visitor'] + " (" + gameData['date'] + ")");
@@ -338,6 +352,30 @@ function updateShotChart(gameID, time) { // this will need to take time as input
           exit.call(exit1 => exit1.transition().delay(duration).remove());
       }     
     )
+
+  var topPlayersList = aggregatePlayerListData(shots)
+
+  var playerCard = div 
+        .selectAll('div.player-card')
+        .data(topPlayersList, (d, i) => {return d.PLAYER + d.POINTS_SCORED + d.SHOTS_MADE + d.FARTHEST_SHOT_MADE})
+        //.sort(function(a,b){return d3.descending(a.POINTS_SCORED, b.POINTS_SCORED)})
+        .join(
+          enter => {
+            let p = enter.append('div').attr('class', 'player-card')
+            let playerPicDiv = p.append('div').attr('class', 'player-card-pic')
+            let image = playerPicDiv.append('img').attr('class', 'player-card-pic').attr('src', function(d) {return playerImages[d.PLAYER]})
+            let playerStatsDivOne = p.append('div').attr('class', 'player-card-stats')
+            let playerName = playerStatsDivOne.append('div').text(function(d){return d.PLAYER})
+            let playerScore = playerStatsDivOne.append('div').text(function(d){return "Points Scored: " + d.POINTS_SCORED})
+
+            let playerStatsDivTwo = p.append('div').attr('class', 'player-card-stats')
+            let playerShotsMade = playerStatsDivTwo.append('div').text(function(d){return "Shots Made: " + d.SHOTS_MADE})
+            let playerFarthestShot = playerStatsDivTwo.append('div').text(function(d){return "Farthest Shot Made: " + d.FARTHEST_SHOT_MADE})
+            
+          },
+          update => update,
+          exit => exit.remove()
+        )
 }
 
 updateShotChart(currentGameID, currentTime)    
