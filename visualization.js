@@ -62,6 +62,14 @@ var currentTime = 0 // time goes from 0 to 48*60
  * 
  */
 
+const formatTicks = (tickValue) => {
+  var firstPart = (Math.floor(tickValue/60))
+  var secondPart = ( tickValue % 60 )
+  if (secondPart < 10){
+    secondPart = "0" + secondPart
+  }
+  return firstPart + ":" + secondPart
+}
 var div = d3
   .select("#side-panel")
   .append("div")
@@ -85,15 +93,15 @@ var div = d3
     .max(48*60)
     .step(1)
     .width(600)
-   // .tickFormat(d3.timeFormat('%x'))
-    .ticks(4)
+    .tickFormat(formatTicks)
+    .tickValues([0, 12*60, 24*60, 36*60, 48*60])
     //.default(0.015);
     .handle(
         d3.symbol()
         .type(d3.symbolCircle)
         .size(100)()
     )
-    .displayValue(false)
+    .displayValue(true)
     .default(0)
     .fill('black')
     .on("onchange", (val) => {
