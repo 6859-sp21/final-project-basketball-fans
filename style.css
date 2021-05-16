@@ -39,16 +39,14 @@
 .court-image-container {
     position: relative;
     z-index: -1;
-    width: 100%;
-    bottom: 150px;
+    width: 97%;
+    top: 20px;
     display: flex;
     justify-content: center;
 }
 
 .court-image {
-    filter: hue-rotate(-30deg) brightness(2.7) saturate(0.75);
-    transform: rotate(90deg);
-    width: 550px; 
+    width: 800px; 
 }
 
 #home-score {

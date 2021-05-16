@@ -213,6 +213,8 @@ function updateShotChart(gameID, time) { // this will need to take time as input
   
   const courtRect = document.querySelector('.court-image').getBoundingClientRect();
   const svgRect = document.getElementById('my_svg').getBoundingClientRect();
+  const x_i = courtRect.left - svgRect.left - margin.left;
+  const y_i = courtRect.top + courtRect.height/2 - svgRect.top - margin.top;
   
   let image = svg
     .selectAll('.shot')
@@ -220,20 +222,27 @@ function updateShotChart(gameID, time) { // this will need to take time as input
     .join(
       enter => {
         // G IS THE GROUP OF IMAGE AND TEXT/RECTANGLE
-        let g = enter.append('g').attr("class", "shot").attr("overflow", "hidden");
+        let g = enter.append('g').attr("class", "shot").attr("overflow", "hidden")
+          .attr('transform', function (d) {
+            let x_offset = d.TEAM == 'home' 
+              ? HOOP_OFFSET_FT/COURT_WIDTH_FT * courtRect.width 
+              : (1 - HOOP_OFFSET_FT/COURT_WIDTH_FT) * courtRect.width;
+            return `translate(${x_i + x_offset}, ${y_i})`;
+          });
         //console.log(shots)
         g.call(enter => enter.transition().duration(duration)
         .attr('transform', function (d) {
           // d.x and d.y are relative to left corner of court when facing hoop
+          // d.x is slightly off (some values are negative) so we apply a slight correction below
           if (d.TEAM === "home") {
             var x = courtRect.left - svgRect.left - margin.left + (coord(d.y) + HOOP_OFFSET_FT)/COURT_WIDTH_FT * courtRect.width;
-            var y = courtRect.top + courtRect.height - svgRect.top - margin.top - coord(d.x)/COURT_HEIGHT_FT * courtRect.height;
+            var y = courtRect.top + courtRect.height - svgRect.top - margin.top - (coord(d.x)+1)/COURT_HEIGHT_FT * courtRect.height;
           } else {
             var x = courtRect.left + courtRect.width - svgRect.left - margin.left - (coord(d.y) + HOOP_OFFSET_FT)/COURT_WIDTH_FT * courtRect.width;
-            var y = courtRect.top - svgRect.top - margin.top + coord(d.x)/COURT_HEIGHT_FT * courtRect.height;
+            var y = courtRect.top - svgRect.top - margin.top + (coord(d.x)+1)/COURT_HEIGHT_FT * courtRect.height;
           }
           return "translate(" + x + "," + y + ")";
-        }))
+        }));
 
         
           // .attr('opacity', 0);
@@ -337,10 +346,10 @@ function updateShotChart(gameID, time) { // this will need to take time as input
           // d.x and d.y are relative to left corner of court when facing hoop
           if (d.TEAM === "home") {
             var x = courtRect.left - svgRect.left - margin.left + (coord(d.y) + HOOP_OFFSET_FT)/COURT_WIDTH_FT * courtRect.width;
-            var y = courtRect.top + courtRect.height - svgRect.top - margin.top - coord(d.x)/COURT_HEIGHT_FT * courtRect.height;
+            var y = courtRect.top + courtRect.height - svgRect.top - margin.top - (coord(d.x)+1)/COURT_HEIGHT_FT * courtRect.height;
           } else {
             var x = courtRect.left + courtRect.width - svgRect.left - margin.left - (coord(d.y) + HOOP_OFFSET_FT)/COURT_WIDTH_FT * courtRect.width;
-            var y = courtRect.top - svgRect.top - margin.top + coord(d.x)/COURT_HEIGHT_FT * courtRect.height;
+            var y = courtRect.top - svgRect.top - margin.top + (coord(d.x)+1)/COURT_HEIGHT_FT * courtRect.height;
           }
           return "translate(" + x + "," + y + ")";
         }))
