@@ -1,7 +1,7 @@
 import {stringToColor, coord, url, duration, sliderDuration, aggregateShots, aggregatePlayerListData} from "./utilities.js"
 
 // GET DATA
-const dataUrl = url("./shot_data_2018.json");
+const dataUrl = url("./shot_data_2020_all_first_10.json");
 const playerImagesUrl = url("./playerImages.json");
 let data = await d3.json(dataUrl)
 let playerImages = await d3.json(playerImagesUrl)
@@ -69,6 +69,7 @@ var svg = d3
   .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
 var currentGameID = options[0].value;
+var justStarted = true 
 var currentTime = 0 // time goes from 0 to 48*60
 var maxTime = 48*60
 /**
@@ -128,7 +129,7 @@ var div = d3
         
         let nextTime = currentTime + 5
        // console.log(nextTime)
-        if (nextTime > 48*60) {
+        if (nextTime > maxTime) {
             pause()
         } else {
             //console.log("notdone" + currentTime + ' -> ' + nextTime)
@@ -199,7 +200,7 @@ function updateShotChart(gameID, time) { // this will need to take time as input
   const gameData = data[gameID]
   let shots = data[gameID]['shots_home']
   shots = shots.concat(data[gameID]['shots_visitor'])
-  shots = shots.filter((entry)=>{return entry.MAKE_MISS === 'MAKE' })
+ //s shots = shots.filter((entry)=>{return entry.MAKE_MISS === 'MAKE' })
   let maxQ = -1
   shots = shots.filter((entry) => {
       let q = entry['QUARTER']
@@ -209,18 +210,17 @@ function updateShotChart(gameID, time) { // this will need to take time as input
       let curtime = ((q>4)?(4*12*60+(q-4)*5*60) : q*12*60) - (parseInt(splt[0])*60+parseFloat(splt[1]))
       entry['sorttime'] = curtime
       if(q > maxQ) maxQ = q
-      return curtime < time
+      return (curtime <= time) 
   })
-  if(newGame) {
+  if(newGame || justStarted) {
+    justStarted = false
   maxTime = (maxQ > 4 ? ((maxQ-4)*5+48) : 48)*60
     let tickValues = [0, 12*60, 24*60, 36*60, 48*60]
     if (maxQ > 4) {
-      console.log(maxQ)
       let cur = 48*60
       for(var i=0; i<maxQ-4; i++) {
         cur += 5*60 
         tickValues.push(cur)
-        console.log(cur/60)
       }
     }
     slider.max(maxTime).tickValues(tickValues)
@@ -228,8 +228,9 @@ function updateShotChart(gameID, time) { // this will need to take time as input
   }
   shots.sort((a, b) => (a['sorttime'] > b['sorttime']) ? 1 : -1)
 
-  var [homeCountOfThrees, homeCountOfTwos, visitorCountOfThrees, visitorCountOfTwos, homeScore, visitorScore] = aggregateShots(shots)
-
+  // var [homeCountOfThrees, homeCountOfTwos, visitorCountOfThrees, visitorCountOfTwos, homeScore, visitorScore] = aggregateShots(shots)
+  var homeScore = (shots.length > 0) ? shots[shots.length-1].HOME_SCORE  : 0
+  var visitorScore = (shots.length > 0)  ? shots[shots.length-1].VISITOR_SCORE  : 0
   d3.select('#scoreboard').select('#home-score').select('#home-name').text(gameData['home'])
   d3.select('#scoreboard').select('#home-score').select('#score').text(`${homeScore}`)
   // d3.select('#scoreboard').select('#home-score').select('#threes').text(`Threes: ${homeCountOfThrees}`)
@@ -250,7 +251,7 @@ function updateShotChart(gameID, time) { // this will need to take time as input
   
   let image = svg
     .selectAll('.shot')
-    .data(shots, (d, i) => {return (d.PLAYER) + (d.TIME_REMAINING) + (d.x) + (d.y) })
+    .data(shots.filter(entry => (entry.x && (entry.VALUE > 1))), (d, i) => {return (d.PLAYER) + (d.TIME_REMAINING) + (d.x) + (d.y) + d.HOME_SCORE + d.VISITOR_SCORE })
     .join(
       enter => {
         // G IS THE GROUP OF IMAGE AND TEXT/RECTANGLE
@@ -289,8 +290,9 @@ function updateShotChart(gameID, time) { // this will need to take time as input
           // .attr('transform', function (d) { 
           //   return "translate(" + 20*coord(d.x) + "," + 15*coord(d.y) + ")"
           // })
-          .attr('fill', (d)=>{return stringToColor(d.PLAYER)});
-
+          .attr('fill', (d)=>{return d.MAKE_MISS == 'MAKE' ? stringToColor(d.PLAYER) : '#FFFFFF'})
+          .attr('stroke', (d)=>stringToColor(d.PLAYER))
+          .attr('stroke-width', 0);
         tooltip.append('circle')
           .attr('class', 'border')
           .attr('pointer-events', 'none')
@@ -322,7 +324,7 @@ function updateShotChart(gameID, time) { // this will need to take time as input
           // THE RECT
         let image =  tooltip.append('svg:image')
         .attr('pointer-events', 'none')
-           .attr('xlink:href', function (d) {return playerImages[d.PLAYER] } )
+           .attr('xlink:href', function (d) {return d.IMAGE } )
           .attr("preserveAspectRatio", "xMinYMin slice")
           .attr('clip-path', (d,i) => `url(#${gameID + '_' + i})`)
           
@@ -341,7 +343,7 @@ function updateShotChart(gameID, time) { // this will need to take time as input
           tooltip.append('text')
           .attr('pointer-events', 'none')
           .text((d, i) => {
-            return d.PLAYER + " " + (d.MAKE_MISS ? "makes" : "misses") + " " + d.DISTANCE + " shot";
+            return d.PLAYER + " " + ((d.MAKE_MISS == 'MAKE') ? "makes" : "misses") + " " + d.DISTANCE + " shot";
           })
           .attr("x", function (d) { return -50; })
           .attr("y", function (d) { return 50; })
@@ -360,14 +362,14 @@ function updateShotChart(gameID, time) { // this will need to take time as input
 
           point.on("mouseover", function(event, d) {
             d3.selectAll('.tooltip').attr('opacity', (d2,i)=>{return d.PLAYER === d2.PLAYER ? 1 : 0})
-            d3.selectAll('.shotpoint').attr('opacity', (d2,i)=>{return d.PLAYER === d2.PLAYER ? 0 : 0.2})
+            d3.selectAll('.shotpoint').attr('opacity', (d2,i)=>{return d.PLAYER === d2.PLAYER ? 0 : 0.2}).attr('stroke-width', 0)
           })
           point.on("mouseout", function(event, d) {
             d3.selectAll('.tooltip').attr('opacity', (d2,i)=>{return 0})
-            d3.selectAll('.shotpoint').attr('opacity', (d2,i)=>{return 1})
+            d3.selectAll('.shotpoint').attr('opacity', (d2,i)=>{return 1}).attr('stroke-width', 2)
           })
 
-          point.call(e => e.transition().delay(duration + interval_time*5).duration(duration/2).attr('r', 5).attr('opacity', 1))
+          point.call(e => e.transition().delay(duration + interval_time*5).duration(duration/2).attr('r', 5).attr('opacity', 1).attr('stroke-width', 2))
         },
       update => {
         if(oldCourtRect.top === courtRect.top && oldCourtRect.left === courtRect.left) {
@@ -406,20 +408,20 @@ function updateShotChart(gameID, time) { // this will need to take time as input
 
   var playerCard = div 
         .selectAll('div.player-card')
-        .data(topPlayersList, (d, i) => {return d.PLAYER + d.POINTS_SCORED + d.SHOTS_MADE + d.FARTHEST_SHOT_MADE})
+        .data(topPlayersList, (d, i) => {return d.PLAYER + d.POINTS + d.REBOUNDS + d.ASSISTS + d.FG_ATTEMPTED + d.FG_MADE + d['3FG_ATTEMPTED'] + d['3FG_MADE']})
         //.sort(function(a,b){return d3.descending(a.POINTS_SCORED, b.POINTS_SCORED)})
         .join(
           enter => {
             let p = enter.append('div').attr('class', 'player-card')
             let playerPicDiv = p.append('div').attr('class', 'player-card-pic')
-            let image = playerPicDiv.append('img').attr('class', 'player-card-pic').attr('src', function(d) {return playerImages[d.PLAYER]})
+            let image = playerPicDiv.append('img').attr('class', 'player-card-pic').attr('src', function(d) {return d.IMAGE})
             let playerStatsDivOne = p.append('div').attr('class', 'player-card-stats')
             let playerName = playerStatsDivOne.append('div').text(function(d){return d.PLAYER})
-            let playerScore = playerStatsDivOne.append('div').text(function(d){return "Points Scored: " + d.POINTS_SCORED})
+            let playerScore = playerStatsDivOne.append('div').text(function(d){return "Pts/Reb/Ast: " + d.POINTS + "|" + d.REBOUNDS + "|" + d.ASSISTS})
 
             let playerStatsDivTwo = p.append('div').attr('class', 'player-card-stats')
-            let playerShotsMade = playerStatsDivTwo.append('div').text(function(d){return "Shots Made: " + d.SHOTS_MADE})
-            let playerFarthestShot = playerStatsDivTwo.append('div').text(function(d){return "Farthest Shot Made: " + d.FARTHEST_SHOT_MADE})
+            let playerShotsMade = playerStatsDivTwo.append('div').text(function(d){return "FG: " + d.FG_MADE + "/" + d.FG_ATTEMPTED})
+            let playerFarthestShot = playerStatsDivTwo.append('div').text(function(d){return "3-pt FG: " + d['3FG_MADE'] + "/" + d['3FG_ATTEMPTED']})
             
           },
           update => update,

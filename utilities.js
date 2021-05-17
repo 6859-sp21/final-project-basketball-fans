@@ -50,6 +50,76 @@ const aggregateShots = (shots) => {
 
 const aggregatePlayerListData = (shots) => {
     var playersData = {}
+    const initialize = (playerName, shot) => {
+        playersData[playerName] = {}
+        playersData[playerName]['FG_MADE'] = 0
+        playersData[playerName]['FG_ATTEMPTED'] = 0
+        playersData[playerName]['3FG_MADE'] = 0
+        playersData[playerName]['3FG_ATTEMPTED'] = 0
+        playersData[playerName]['POINTS'] = 0
+        playersData[playerName]['ASSISTS'] = 0
+        playersData[playerName]['REBOUNDS'] = 0
+        playersData[playerName]['TEAM'] = shot.TEAM
+        playersData[playerName]['IMAGE'] = shot.IMAGE
+        playersData[playerName]['PLAYER'] = shot.PLAYER
+    }
+    for (var i = 0; i < shots.length; i++) {
+        var playerName = shots[i]['PLAYER']
+        if (!playersData.hasOwnProperty(playerName)) {
+            initialize(playerName, shots[i])
+        }
+        var shot = shots[i]
+        if(!playersData[playerName]['IMAGE']) {
+            playersData[playerName]['IMAGE'] = shot.IMAGE
+            playersData[playerName]['TEAM'] = shot.TEAM
+            playersData[playerName]['PLAYER'] = shot.PLAYER
+        }
+        if (shots[i].REBOUND) {
+            playersData[playerName]['REBOUNDS'] += 1
+            continue
+        }
+        if(shots[i].VALUE >= 2) {
+            playersData[playerName]['FG_ATTEMPTED'] += 1
+            if(shots[i].MAKE_MISS == "MAKE")
+                playersData[playerName]['FG_MADE'] += 1
+        }
+        if(shots[i].VALUE >= 3) {
+            if(shots[i].MAKE_MISS == "MAKE") {
+                playersData[playerName]['3FG_MADE'] += 1
+            }
+            playersData[playerName]['3FG_ATTEMPTED'] += 1
+        }
+        if(shots[i].MAKE_MISS == "MAKE") {
+            playersData[playerName]['POINTS'] += shots[i]['VALUE']
+        }
+        if(shots[i].ASSIST) {
+            if (!playersData.hasOwnProperty(shots[i]['ASSIST'])) {
+                initialize(shots[i]['ASSIST'], {})
+            }
+            playersData[shots[i]['ASSIST']]['ASSISTS'] += 1
+        }
+
+    }
+    var topPlayersList = []
+
+    for (var property in playersData) {
+       // var newPlayer = {'PLAYER': property, 'FG_MADE': playersData[property]['SHOTS_MADE'], 'POINTS_SCORED': playersData[property]['POINTS_SCORED'], 'FARTHEST_SHOT_MADE': playersData[property]['FARTHEST_SHOT_MADE']}
+        if(playersData[property].IMAGE) {
+            topPlayersList.push(playersData[property])
+        }
+    }
+
+    topPlayersList.sort((a, b) => ((a['POINTS'] < b['POINTS']) ? 1 : -1))
+    if (topPlayersList.length > 10) {
+        topPlayersList = topPlayersList.slice(0, 10)
+    }
+
+    return topPlayersList
+}
+
+/*
+const aggregatePlayerListData = (shots) => {
+    var playersData = {}
     for (var i = 0; i < shots.length; i++) {
         var playerName = shots[i]['PLAYER']
         if (playersData.hasOwnProperty(playerName)) {
@@ -81,6 +151,7 @@ const aggregatePlayerListData = (shots) => {
 
     return topPlayersList
 }
+*/
 
 const duration = 1000
 const sliderDuration = 500
