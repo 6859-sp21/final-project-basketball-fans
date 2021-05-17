@@ -157,3 +157,11 @@
     padding-left: 10px;
     padding-right: 10px;
 }
+
+.ts-input {
+    width: 80%;
+}
+
+.ts-control .item {
+    font-weight: bold;
+}

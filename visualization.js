@@ -7,18 +7,37 @@ let data = await d3.json(dataUrl)
 let playerImages = await d3.json(playerImagesUrl)
 var moving = false
 var timer = 0
+
 // ADD ALL GAMES TO THE SELECT
-let select = document.getElementById('choosegame')
-let firstGameId = ""
+let options = [];
 for (const gameId in data) {
-   if(firstGameId === "") firstGameId = gameId 
-   var option = document.createElement('option')
-   option.value = gameId 
-   let gameData = data[gameId]
-   option.innerHTML = gameData['home'] + " - " + gameData['visitor'] + " (" + gameData['date'] + ")"
-   select.appendChild(option)
+   let {home, visitor, date, shots_home, shots_visitor, ...rest} = data[gameId]
+   let players = new Set();
+   [...shots_home, ...shots_visitor].forEach(shot => players.add(shot.PLAYER));
+   options.push({
+     value: gameId,
+     text: `${visitor} at ${home}, ${date}`,
+     player: Array.from(players),
+     home,
+     visitor,
+     date
+   });
 }
-select.value = firstGameId 
+var select = new TomSelect('#choosegame', {
+  options,
+  items: [options[0].value],
+  maxItems: 1,
+  searchField: ['home', 'visitor', 'date', 'player'],
+  sortField: [{field: '$order'}, {field: '$score'}],
+  selectOnTab: true,
+  onChange: value => {
+    pause();
+    updateShotChart(value, 0);
+  },
+  onDelete: () => false
+});
+
+
 var playButton = d3.select("#play-button");
 var playButtonDOM = document.getElementById("play-button");
 function pause() {
@@ -34,11 +53,6 @@ function pause() {
         setTimeout(() => {playButtonDOM.disabled = false}, duration);
 }
 
-select.onchange = (event) => {
-   pause()
-   updateShotChart(event.target.value, 0)
-   //console.log(currentGameID + " " + currentTime)
-}
 
 // Setting up variables that describe our chart's space.
 const margin = { top: 30, right: 30, bottom: 30, left: 30 };
@@ -54,7 +68,7 @@ var svg = d3
   .attr("id", "court")
   .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
-var currentGameID = firstGameId
+var currentGameID = options[0].value;
 var currentTime = 0 // time goes from 0 to 48*60
 
 /**
@@ -209,7 +223,7 @@ function updateShotChart(gameID, time) { // this will need to take time as input
   // d3.select('#scoreboard').select('#visitor-score').select('#twos').text(`Twos: ${visitorCountOfTwos}`)
 
   currentGameID = gameID 
-  d3.select('#game_id').text(gameData['home'] + " - " + gameData['visitor'] + " (" + gameData['date'] + ")");
+  d3.select('#game_id').text(`${gameData['visitor']} at ${gameData['home']}, ${gameData['date']}`);
   
   const courtRect = document.querySelector('.court-image').getBoundingClientRect();
   const svgRect = document.getElementById('my_svg').getBoundingClientRect();
