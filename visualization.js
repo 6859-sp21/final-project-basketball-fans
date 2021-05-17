@@ -1,7 +1,7 @@
 import {stringToColor, coord, url, duration, sliderDuration, aggregateShots, aggregatePlayerListData} from "./utilities.js"
 
 // GET DATA
-const dataUrl = url("./shot_data_2016.json");
+const dataUrl = url("./shot_data_2018.json");
 const playerImagesUrl = url("./playerImages.json");
 let data = await d3.json(dataUrl)
 let playerImages = await d3.json(playerImagesUrl)
@@ -56,7 +56,7 @@ var svg = d3
 
 var currentGameID = firstGameId
 var currentTime = 0 // time goes from 0 to 48*60
-
+var maxTime = 48*60
 /**
  * SIDE Panel Play List Code
  * 
@@ -90,7 +90,7 @@ var div = d3
     slider = d3
     .sliderBottom()
     .min(0)
-    .max(48*60)
+    .max(maxTime)
     .step(1)
     .width(600)
     .tickFormat(formatTicks)
@@ -177,6 +177,7 @@ let oldCourtRect = {top: -1, left: -1}
 function updateShotChart(gameID, time) { // this will need to take time as input once we animate
   slider.value(time)
   currentTime = time
+  let newGame = (currentGameID != gameID)
   currentGameID = gameID
 
   const width = window.innerWidth - margin.left - margin.right;
@@ -185,6 +186,7 @@ function updateShotChart(gameID, time) { // this will need to take time as input
   let shots = data[gameID]['shots_home']
   shots = shots.concat(data[gameID]['shots_visitor'])
   shots = shots.filter((entry)=>{return entry.MAKE_MISS === 'MAKE' })
+  let maxQ = -1
   shots = shots.filter((entry) => {
       let q = entry['QUARTER']
       let time_remaining = entry['TIME_REMAINING']
@@ -192,8 +194,24 @@ function updateShotChart(gameID, time) { // this will need to take time as input
 
       let curtime = ((q>4)?(4*12*60+(q-4)*5*60) : q*12*60) - (parseInt(splt[0])*60+parseFloat(splt[1]))
       entry['sorttime'] = curtime
+      if(q > maxQ) maxQ = q
       return curtime < time
   })
+  if(newGame) {
+  maxTime = (maxQ > 4 ? ((maxQ-4)*5+48) : 48)*60
+    let tickValues = [0, 12*60, 24*60, 36*60, 48*60]
+    if (maxQ > 4) {
+      console.log(maxQ)
+      let cur = 48*60
+      for(var i=0; i<maxQ-4; i++) {
+        cur += 5*60 
+        tickValues.push(cur)
+        console.log(cur/60)
+      }
+    }
+    slider.max(maxTime).tickValues(tickValues)
+    d3.select("#slider").call(slider)
+  }
   shots.sort((a, b) => (a['sorttime'] > b['sorttime']) ? 1 : -1)
 
   var [homeCountOfThrees, homeCountOfTwos, visitorCountOfThrees, visitorCountOfTwos, homeScore, visitorScore] = aggregateShots(shots)
