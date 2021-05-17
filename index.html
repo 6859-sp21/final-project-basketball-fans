@@ -2,12 +2,15 @@
 <meta charset="utf-8" />
 <!-- <link rel="icon" href="./favicon.ico" type="image/x-icon">  -->
 <!-- <link rel="shortcut icon" href="./favicon.ico" type="image/x-icon"> -->
+<link href="https://cdn.jsdelivr.net/npm/tom-select@1.7.0/dist/css/tom-select.css" rel="stylesheet">
 <link rel="stylesheet" href="./style.css" />
+<script src="https://cdn.jsdelivr.net/npm/tom-select@1.7.0/dist/js/tom-select.complete.min.js"></script>
 <body>
   <div id="main-container">
 
     <div id="main-panel">
       <h1>Shot Chart for <span id="game_id"></span></h1>
+      <p>Try typing names of players to narrow your search! You can also filter teams using <b>home:</b> or <b>visitor:</b></p>
       <select name="Game" id="choosegame"></select>
       <div class="controls-container">
         <button id="play-button">Play</button>
@@ -21,7 +24,7 @@
       <div class="court-image-container">
         <img
           class="court-image"
-          src="https://upload.wikimedia.org/wikipedia/commons/b/be/Basketball_court_fiba.svg"
+          src="./court.svg"
         />
       </div>
       <div id="my_dataviz" style="height: calc(100% - 250px)"></div>

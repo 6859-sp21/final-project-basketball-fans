@@ -7,18 +7,37 @@ let data = await d3.json(dataUrl)
 let playerImages = await d3.json(playerImagesUrl)
 var moving = false
 var timer = 0
+
 // ADD ALL GAMES TO THE SELECT
-let select = document.getElementById('choosegame')
-let firstGameId = ""
+let options = [];
 for (const gameId in data) {
-   if(firstGameId === "") firstGameId = gameId 
-   var option = document.createElement('option')
-   option.value = gameId 
-   let gameData = data[gameId]
-   option.innerHTML = gameData['home'] + " - " + gameData['visitor'] + " (" + gameData['date'] + ")"
-   select.appendChild(option)
+   let {home, visitor, date, shots_home, shots_visitor, ...rest} = data[gameId]
+   let players = new Set();
+   [...shots_home, ...shots_visitor].forEach(shot => players.add(shot.PLAYER));
+   options.push({
+     value: gameId,
+     text: `${visitor} at ${home}, ${date}`,
+     player: Array.from(players),
+     home,
+     visitor,
+     date
+   });
 }
-select.value = firstGameId 
+var select = new TomSelect('#choosegame', {
+  options,
+  items: [options[0].value],
+  maxItems: 1,
+  searchField: ['home', 'visitor', 'date', 'player'],
+  sortField: [{field: '$order'}, {field: '$score'}],
+  selectOnTab: true,
+  onChange: value => {
+    pause();
+    updateShotChart(value, 0);
+  },
+  onDelete: () => false
+});
+
+
 var playButton = d3.select("#play-button");
 var playButtonDOM = document.getElementById("play-button");
 function pause() {
@@ -34,11 +53,6 @@ function pause() {
         setTimeout(() => {playButtonDOM.disabled = false}, duration);
 }
 
-select.onchange = (event) => {
-   pause()
-   updateShotChart(event.target.value, 0)
-   //console.log(currentGameID + " " + currentTime)
-}
 
 // Setting up variables that describe our chart's space.
 const margin = { top: 30, right: 30, bottom: 30, left: 30 };
@@ -54,7 +68,7 @@ var svg = d3
   .attr("id", "court")
   .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
-var currentGameID = firstGameId
+var currentGameID = options[0].value;
 var currentTime = 0 // time goes from 0 to 48*60
 var maxTime = 48*60
 /**
@@ -227,10 +241,12 @@ function updateShotChart(gameID, time) { // this will need to take time as input
   // d3.select('#scoreboard').select('#visitor-score').select('#twos').text(`Twos: ${visitorCountOfTwos}`)
 
   currentGameID = gameID 
-  d3.select('#game_id').text(gameData['home'] + " - " + gameData['visitor'] + " (" + gameData['date'] + ")");
+  d3.select('#game_id').text(`${gameData['visitor']} at ${gameData['home']}, ${gameData['date']}`);
   
   const courtRect = document.querySelector('.court-image').getBoundingClientRect();
   const svgRect = document.getElementById('my_svg').getBoundingClientRect();
+  const x_i = courtRect.left - svgRect.left - margin.left;
+  const y_i = courtRect.top + courtRect.height/2 - svgRect.top - margin.top;
   
   let image = svg
     .selectAll('.shot')
@@ -238,20 +254,27 @@ function updateShotChart(gameID, time) { // this will need to take time as input
     .join(
       enter => {
         // G IS THE GROUP OF IMAGE AND TEXT/RECTANGLE
-        let g = enter.append('g').attr("class", "shot").attr("overflow", "hidden");
+        let g = enter.append('g').attr("class", "shot").attr("overflow", "hidden")
+          .attr('transform', function (d) {
+            let x_offset = d.TEAM == 'home' 
+              ? HOOP_OFFSET_FT/COURT_WIDTH_FT * courtRect.width 
+              : (1 - HOOP_OFFSET_FT/COURT_WIDTH_FT) * courtRect.width;
+            return `translate(${x_i + x_offset}, ${y_i})`;
+          });
         //console.log(shots)
         g.call(enter => enter.transition().duration(duration)
         .attr('transform', function (d) {
           // d.x and d.y are relative to left corner of court when facing hoop
+          // d.x is slightly off (some values are negative) so we apply a slight correction below
           if (d.TEAM === "home") {
             var x = courtRect.left - svgRect.left - margin.left + (coord(d.y) + HOOP_OFFSET_FT)/COURT_WIDTH_FT * courtRect.width;
-            var y = courtRect.top + courtRect.height - svgRect.top - margin.top - coord(d.x)/COURT_HEIGHT_FT * courtRect.height;
+            var y = courtRect.top + courtRect.height - svgRect.top - margin.top - (coord(d.x)+1)/COURT_HEIGHT_FT * courtRect.height;
           } else {
             var x = courtRect.left + courtRect.width - svgRect.left - margin.left - (coord(d.y) + HOOP_OFFSET_FT)/COURT_WIDTH_FT * courtRect.width;
-            var y = courtRect.top - svgRect.top - margin.top + coord(d.x)/COURT_HEIGHT_FT * courtRect.height;
+            var y = courtRect.top - svgRect.top - margin.top + (coord(d.x)+1)/COURT_HEIGHT_FT * courtRect.height;
           }
           return "translate(" + x + "," + y + ")";
-        }))
+        }));
 
         
           // .attr('opacity', 0);
@@ -355,10 +378,10 @@ function updateShotChart(gameID, time) { // this will need to take time as input
           // d.x and d.y are relative to left corner of court when facing hoop
           if (d.TEAM === "home") {
             var x = courtRect.left - svgRect.left - margin.left + (coord(d.y) + HOOP_OFFSET_FT)/COURT_WIDTH_FT * courtRect.width;
-            var y = courtRect.top + courtRect.height - svgRect.top - margin.top - coord(d.x)/COURT_HEIGHT_FT * courtRect.height;
+            var y = courtRect.top + courtRect.height - svgRect.top - margin.top - (coord(d.x)+1)/COURT_HEIGHT_FT * courtRect.height;
           } else {
             var x = courtRect.left + courtRect.width - svgRect.left - margin.left - (coord(d.y) + HOOP_OFFSET_FT)/COURT_WIDTH_FT * courtRect.width;
-            var y = courtRect.top - svgRect.top - margin.top + coord(d.x)/COURT_HEIGHT_FT * courtRect.height;
+            var y = courtRect.top - svgRect.top - margin.top + (coord(d.x)+1)/COURT_HEIGHT_FT * courtRect.height;
           }
           return "translate(" + x + "," + y + ")";
         }))
