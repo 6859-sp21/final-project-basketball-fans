@@ -3,8 +3,10 @@ import {stringToColor, coord, url, duration, sliderDuration, aggregateShots, agg
 // GET DATA
 const dataUrl = url("./shot_data_2020_all_first_10.json");
 const playerImagesUrl = url("./playerImages.json");
+const teamImagesUrl = url("./team_pics.json")
 let data = await d3.json(dataUrl)
-let playerImages = await d3.json(playerImagesUrl)
+//let playerImages = await d3.json(playerImagesUrl)
+let teamImages = await d3.json(teamImagesUrl)
 var moving = false
 var timer = 0
 
@@ -226,18 +228,21 @@ function updateShotChart(gameID, time) { // this will need to take time as input
     slider.max(maxTime).tickValues(tickValues)
     d3.select("#slider").call(slider)
   }
+  console.log(gameData['home'])
   shots.sort((a, b) => (a['sorttime'] > b['sorttime']) ? 1 : -1)
-
   // var [homeCountOfThrees, homeCountOfTwos, visitorCountOfThrees, visitorCountOfTwos, homeScore, visitorScore] = aggregateShots(shots)
   var homeScore = (shots.length > 0) ? shots[shots.length-1].HOME_SCORE  : 0
   var visitorScore = (shots.length > 0)  ? shots[shots.length-1].VISITOR_SCORE  : 0
   d3.select('#scoreboard').select('#home-score').select('#home-name').text(gameData['home'])
+  d3.select('#scoreboard').select('#home-score').select('#team-image-home').attr('src', teamImages[gameData['home']])
   d3.select('#scoreboard').select('#home-score').select('#score').text(`${homeScore}`)
   // d3.select('#scoreboard').select('#home-score').select('#threes').text(`Threes: ${homeCountOfThrees}`)
   // d3.select('#scoreboard').select('#home-score').select('#twos').text(`Twos: ${homeCountOfTwos}`)
 
   d3.select('#scoreboard').select('#visitor-score').select('#visitor-name').text(gameData['visitor'])
   d3.select('#scoreboard').select('#visitor-score').select('#score').text(`${visitorScore}`)
+  d3.select('#scoreboard').select('#visitor-score').select('#team-image-visitor').attr('src', teamImages[gameData['visitor']])
+
   // d3.select('#scoreboard').select('#visitor-score').select('#threes').text(`Threes: ${visitorCountOfThrees}`)
   // d3.select('#scoreboard').select('#visitor-score').select('#twos').text(`Twos: ${visitorCountOfTwos}`)
 

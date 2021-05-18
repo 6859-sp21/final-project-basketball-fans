@@ -9,7 +9,7 @@ sys.path.append("./basketball_reference_scraper/basketball_reference_scraper")
 from pbp import get_pbp
 from shot_charts import get_shot_chart
 from seasons import get_schedule, get_standings
-from players import get_stats, get_game_logs, get_player_headshot, get_name
+from players import get_stats, get_game_logs, get_player_headshot, get_name, get_team_image
 abbrevs = {}
 
 def readPlayerImages():
@@ -290,4 +290,14 @@ def getRegularSeasonShotsWithPBP(year):
     with open(f'playerNames.json', 'w') as outfile:
         json.dump(playerNames, outfile)
 
-getRegularSeasonShotsWithPBP(2020)
+# getRegularSeasonShotsWithPBP(2020)
+
+teamdata = {}
+for team in abbrevs:
+    team_new = team.split(" ")
+    for i in range(len(team_new)):
+        team_new[i] = team_new[i].capitalize()
+    team_new = " ".join(team_new)
+    teamdata[team_new] = get_team_image(abbrevs[team])
+with open(f'team_pics.json', 'w') as outfile:
+    json.dump(teamdata, outfile)
