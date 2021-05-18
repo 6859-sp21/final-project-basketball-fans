@@ -295,13 +295,13 @@ function updateShotChart(gameID, time) { // this will need to take time as input
           // .attr('transform', function (d) { 
           //   return "translate(" + 20*coord(d.x) + "," + 15*coord(d.y) + ")"
           // })
-          .attr('fill', (d)=>{return d.MAKE_MISS == 'MAKE' ? stringToColor(d.PLAYER) : '#FFFFFF'})
-          .attr('stroke', (d)=>stringToColor(d.PLAYER))
-          .attr('stroke-width', 0);
+          .attr('fill', (d)=>{return d.MAKE_MISS == 'MAKE' ? '#00FF00' : '#FF0000'/*stringToColor(d.PLAYER) : '#FFFFFF'}*/})
+          //.attr('stroke', (d)=>stringToColor(d.PLAYER))
+          //.attr('stroke-width', 0);
         tooltip.append('circle')
           .attr('class', 'border')
           .attr('pointer-events', 'none')
-          .attr('fill', (d)=>{return stringToColor(d.PLAYER)})
+          .attr('fill', (d)=>{return d.MAKE_MISS == 'MAKE' ? '#00FF00' : '#FF0000' /*return stringToColor(d.PLAYER)*/})
           .call(enter => enter.transition()
           .attr('r', 0)
           .attr('cx', 0)
@@ -345,6 +345,8 @@ function updateShotChart(gameID, time) { // this will need to take time as input
           .attr('height', 40))
           
           //TOOLTIP
+          // NO TEXT
+          /*
           tooltip.append('text')
           .attr('pointer-events', 'none')
           .text((d, i) => {
@@ -352,11 +354,16 @@ function updateShotChart(gameID, time) { // this will need to take time as input
           })
           .attr("x", function (d) { return -50; })
           .attr("y", function (d) { return 50; })
+*/
+/*
+          tooltip
           .attr("opacity", 0)
           .call(enter => enter.transition()
               .delay(duration/2).duration(duration/2)
               .attr("opacity", 1)
-              )
+              )*/
+
+
           /*.call(enter => enter.transition()
           .delay(duration*2/2 + interval_time*5).duration(duration/2)
           .attr("opacity", 0))*/
@@ -367,11 +374,11 @@ function updateShotChart(gameID, time) { // this will need to take time as input
 
           point.on("mouseover", function(event, d) {
             d3.selectAll('.tooltip').attr('opacity', (d2,i)=>{return d.PLAYER === d2.PLAYER ? 1 : 0})
-            d3.selectAll('.shotpoint').attr('opacity', (d2,i)=>{return d.PLAYER === d2.PLAYER ? 0 : 0.2}).attr('stroke-width', 0)
+            d3.selectAll('.shotpoint').attr('opacity', (d2,i)=>{return d.PLAYER === d2.PLAYER ? 0 : 0.2})//.attr('stroke-width', 0)
           })
           point.on("mouseout", function(event, d) {
             d3.selectAll('.tooltip').attr('opacity', (d2,i)=>{return 0})
-            d3.selectAll('.shotpoint').attr('opacity', (d2,i)=>{return 1}).attr('stroke-width', 2)
+            d3.selectAll('.shotpoint').attr('opacity', (d2,i)=>{return 1})//.attr('stroke-width', 2)
           })
 
           point.call(e => e.transition().delay(duration + interval_time*5).duration(duration/2).attr('r', 5).attr('opacity', 1).attr('stroke-width', 2))

@@ -128,12 +128,13 @@ def getRegularSeasonShotsWithPBP(year):
     sched = get_schedule(year, playoffs=False)
     data = {}
     for index, row in sched.iterrows():
-
+       
         # SHOT DATA
         yr = row['DATE'].year
         gameId = getGameID(row['DATE'].strftime("%m/%d/%Y"), abbrev(row['HOME'], yr), abbrev(row['VISITOR'], yr))
         print(gameId)
-        
+        if gameId == "08/15/2020_MEM_POR":
+            break
         dd = get_shot_chart(row['DATE'].strftime("%m/%d/%Y"), abbrev(row['HOME'], yr), abbrev(row['VISITOR'], yr))
         home_shots = json.loads(dd[abbrev(row['HOME'], yr)].to_json(orient='records'))
         visitor_shots = json.loads(dd[abbrev(row['VISITOR'], yr)].to_json(orient='records'))
@@ -290,9 +291,9 @@ def getRegularSeasonShotsWithPBP(year):
     with open(f'playerNames.json', 'w') as outfile:
         json.dump(playerNames, outfile)
 
-# getRegularSeasonShotsWithPBP(2020)
+getRegularSeasonShotsWithPBP(2020)
 
-teamdata = {}
+""" teamdata = {}
 for team in abbrevs:
     team_new = team.split(" ")
     for i in range(len(team_new)):
@@ -300,4 +301,4 @@ for team in abbrevs:
     team_new = " ".join(team_new)
     teamdata[team_new] = get_team_image(abbrevs[team])
 with open(f'team_pics.json', 'w') as outfile:
-    json.dump(teamdata, outfile)
+    json.dump(teamdata, outfile) """
