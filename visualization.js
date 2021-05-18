@@ -97,7 +97,7 @@ var div = d3
  * SLIDER and PLAY BUTTON CODE
  * 
  */
- let total_time = 60
+ let total_time = 120
  let interval_time = (total_time/(48*60))*5*1000
  let slider = -1
  let sliderFunc = () => {
@@ -346,7 +346,7 @@ function updateShotChart(gameID, time) { // this will need to take time as input
           
           //TOOLTIP
           // NO TEXT
-          /*
+          
           tooltip.append('text')
           .attr('pointer-events', 'none')
           .text((d, i) => {
@@ -354,7 +354,8 @@ function updateShotChart(gameID, time) { // this will need to take time as input
           })
           .attr("x", function (d) { return -50; })
           .attr("y", function (d) { return 50; })
-*/
+          .attr("opacity", moving ? 1 : 0)
+
 /*
           tooltip
           .attr("opacity", 0)
@@ -373,8 +374,8 @@ function updateShotChart(gameID, time) { // this will need to take time as input
           
 
           point.on("mouseover", function(event, d) {
-            d3.selectAll('.tooltip').attr('opacity', (d2,i)=>{return d.PLAYER === d2.PLAYER ? 1 : 0})
-            d3.selectAll('.shotpoint').attr('opacity', (d2,i)=>{return d.PLAYER === d2.PLAYER ? 0 : 0.2})//.attr('stroke-width', 0)
+            d3.selectAll('.tooltip').attr('opacity', (d2,i)=>{return (d.PLAYER === d2.PLAYER) && (d.TIME_REMAINING == d2.TIME_REMAINING) ? 1 : 0})
+            d3.selectAll('.shotpoint').attr('opacity', (d2,i)=>{return d.PLAYER === d2.PLAYER && (d.TIME_REMAINING == d2.TIME_REMAINING)? 0 : 0.2})//.attr('stroke-width', 0)
           })
           point.on("mouseout", function(event, d) {
             d3.selectAll('.tooltip').attr('opacity', (d2,i)=>{return 0})
@@ -417,7 +418,7 @@ function updateShotChart(gameID, time) { // this will need to take time as input
     )
 
   var topPlayersList = aggregatePlayerListData(shots)
-  var playerDuration = moving ? 100 : 1000
+  var playerDuration = (moving) ? (total_time <= 20 ? 50 : 100) : 1000
   var playerCard = div 
         .selectAll('div.player-card')
         .data(topPlayersList, (d, i) => {return d.PLAYER})
@@ -439,6 +440,16 @@ function updateShotChart(gameID, time) { // this will need to take time as input
             let playerShotsMade = playerStatsDivTwo.append('div').attr('class', 'fg').text(function(d){return "FG: " + d.FG_MADE + "/" + d.FG_ATTEMPTED})
             let playerFarthestShot = playerStatsDivTwo.append('div').attr('class', 'threefg').text(function(d){return "3-pt FG: " + d['3FG_MADE'] + "/" + d['3FG_ATTEMPTED']})
             
+            p.on("mouseover", function(event, d) {
+              d3.selectAll('.tooltip').attr('opacity', (d2,i)=>{return (d.PLAYER === d2.PLAYER) ? 1 : 0})
+              .select('text').attr('opacity', 0)
+
+              d3.selectAll('.shotpoint').attr('opacity', (d2,i)=>{return d.PLAYER === d2.PLAYER ? 0 : 0.2})//.attr('stroke-width', 0)
+            })
+            p.on("mouseout", function(event, d) {
+              d3.selectAll('.tooltip').attr('opacity', (d2,i)=>{return 0})
+              d3.selectAll('.shotpoint').attr('opacity', (d2,i)=>{return 1})//.attr('stroke-width', 2)
+            })
           },
           update => {
             update.select(".counting-stats").text(function(d){return "Pts/Reb/Ast: " + d.POINTS + "|" + d.REBOUNDS + "|" + d.ASSISTS})
@@ -456,6 +467,8 @@ function updateShotChart(gameID, time) { // this will need to take time as input
           ).call(u => 
             u.transition().delay(playerDuration).remove())
         )
+  
+
 }
 
 updateShotChart(currentGameID, currentTime)    
