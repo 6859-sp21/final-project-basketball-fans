@@ -1,7 +1,7 @@
 import {stringToColor, coord, url, duration, sliderDuration, aggregateShots, aggregatePlayerListData} from "./utilities.js"
 
 // GET DATA
-const dataUrl = url("./shot_data_2020_all_first_10.json");
+const dataUrl = url("./shot_data_2020_all.json");
 const playerImagesUrl = url("./playerImages.json");
 const teamImagesUrl = url("./team_pics.json")
 let data = await d3.json(dataUrl)
@@ -228,7 +228,7 @@ function updateShotChart(gameID, time) { // this will need to take time as input
     slider.max(maxTime).tickValues(tickValues)
     d3.select("#slider").call(slider)
   }
-  console.log(gameData['home'])
+  //console.log(gameData['home'])
   shots.sort((a, b) => (a['sorttime'] > b['sorttime']) ? 1 : -1)
   // var [homeCountOfThrees, homeCountOfTwos, visitorCountOfThrees, visitorCountOfTwos, homeScore, visitorScore] = aggregateShots(shots)
   var homeScore = (shots.length > 0) ? shots[shots.length-1].HOME_SCORE  : 0
@@ -417,27 +417,44 @@ function updateShotChart(gameID, time) { // this will need to take time as input
     )
 
   var topPlayersList = aggregatePlayerListData(shots)
-
+  var playerDuration = moving ? 100 : 1000
   var playerCard = div 
         .selectAll('div.player-card')
-        .data(topPlayersList, (d, i) => {return d.PLAYER + d.POINTS + d.REBOUNDS + d.ASSISTS + d.FG_ATTEMPTED + d.FG_MADE + d['3FG_ATTEMPTED'] + d['3FG_MADE']})
+        .data(topPlayersList, (d, i) => {return d.PLAYER})
         //.sort(function(a,b){return d3.descending(a.POINTS_SCORED, b.POINTS_SCORED)})
         .join(
           enter => {
             let p = enter.append('div').attr('class', 'player-card')
+            .call(u=>
+             
+              u.style("top", (9*60+10) +"px").transition().duration(playerDuration).style("top", (d, index) => {return (index*60+10) +"px"})
+            )
             let playerPicDiv = p.append('div').attr('class', 'player-card-pic')
             let image = playerPicDiv.append('img').attr('class', 'player-card-pic').attr('src', function(d) {return d.IMAGE})
             let playerStatsDivOne = p.append('div').attr('class', 'player-card-stats')
             let playerName = playerStatsDivOne.append('div').text(function(d){return d.PLAYER})
-            let playerScore = playerStatsDivOne.append('div').text(function(d){return "Pts/Reb/Ast: " + d.POINTS + "|" + d.REBOUNDS + "|" + d.ASSISTS})
+            let playerScore = playerStatsDivOne.append('div').attr('class', 'counting-stats').text(function(d){return "Pts/Reb/Ast: " + d.POINTS + "|" + d.REBOUNDS + "|" + d.ASSISTS})
 
             let playerStatsDivTwo = p.append('div').attr('class', 'player-card-stats')
-            let playerShotsMade = playerStatsDivTwo.append('div').text(function(d){return "FG: " + d.FG_MADE + "/" + d.FG_ATTEMPTED})
-            let playerFarthestShot = playerStatsDivTwo.append('div').text(function(d){return "3-pt FG: " + d['3FG_MADE'] + "/" + d['3FG_ATTEMPTED']})
+            let playerShotsMade = playerStatsDivTwo.append('div').attr('class', 'fg').text(function(d){return "FG: " + d.FG_MADE + "/" + d.FG_ATTEMPTED})
+            let playerFarthestShot = playerStatsDivTwo.append('div').attr('class', 'threefg').text(function(d){return "3-pt FG: " + d['3FG_MADE'] + "/" + d['3FG_ATTEMPTED']})
             
           },
-          update => update,
-          exit => exit.remove()
+          update => {
+            update.select(".counting-stats").text(function(d){return "Pts/Reb/Ast: " + d.POINTS + "|" + d.REBOUNDS + "|" + d.ASSISTS})
+            update.select(".fg").text(function(d){return "FG: " + d.FG_MADE + "/" + d.FG_ATTEMPTED})
+            update.select(".threefg").text(function(d){return "3-pt FG: " + d['3FG_MADE'] + "/" + d['3FG_ATTEMPTED']})
+            update.call(u=>
+             
+              u.transition().duration(playerDuration).style("top", (d, index) => {return (index*60+10) +"px"})
+            )
+            
+          },
+          exit => exit.call(u=>
+             
+            u.transition().duration(playerDuration).style("top", (9*60+10) +"px")
+          ).call(u => 
+            u.transition().delay(playerDuration).remove())
         )
 }
 

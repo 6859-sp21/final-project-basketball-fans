@@ -291,7 +291,7 @@ def getRegularSeasonShotsWithPBP(year):
     with open(f'playerNames.json', 'w') as outfile:
         json.dump(playerNames, outfile)
 
-getRegularSeasonShotsWithPBP(2020)
+# getRegularSeasonShotsWithPBP(2020)
 
 """ teamdata = {}
 for team in abbrevs:

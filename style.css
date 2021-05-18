@@ -20,10 +20,12 @@
 }
 
 #player-list {
+    /*
     display: flex;
     flex-direction: column;
     justify-content: flex-start;
-    align-items: center;
+    align-items: center;*/
+    position: relative;
     min-height: 650px;
     max-height: 650px;
     margin-top: 15px;
@@ -129,6 +131,8 @@
     flex-direction: row;
     justify-content: flex-start;
     align-items: center;
+    position: absolute;
+   
     margin-top: 5px;
     margin-bottom: 5px;
     padding-left: 10px;
