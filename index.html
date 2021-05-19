@@ -5,66 +5,73 @@
 <link href="https://cdn.jsdelivr.net/npm/tom-select@1.7.0/dist/css/tom-select.css" rel="stylesheet">
 <link rel="stylesheet" href="./style.css" />
 <script src="https://cdn.jsdelivr.net/npm/tom-select@1.7.0/dist/js/tom-select.complete.min.js"></script>
+<script src="https://unpkg.com/flipping@latest/dist/flipping.web.js"></script>
 <body>
   <div id="main-container">
-
     <div id="main-panel">
-      <h1>Shot Chart for <span id="game_id"></span></h1>
-      <p>Try typing names of players to narrow your search! You can also filter teams using <b>home:</b> or <b>visitor:</b></p>
+      <!-- <h2><span id="game_id"></span></h2> -->
+      <p class='select-instructions'>Try typing names of players below! You can also filter teams using <b>home:</b> or <b>visitor:</b></p>
       <select name="Game" id="choosegame"></select>
+      <!-- <div class="court-image-container"> -->
+      <img
+        class="court-image"
+        src="./court.svg"
+      />
+      <!-- </div> -->
+      <div id="slider"></div>
       <div class="controls-container">
         <button id="play-button">Play</button>
         <div>
-          Show Full Game in
+          Show full game in
           <input type="number" id="total-time" min="5" max="720" value="120" />
           seconds
         </div>
-      </div>
-      <div id="slider"></div>
-      <div class="court-image-container">
-        <img
-          class="court-image"
-          src="./court.svg"
-        />
       </div>
       <div id="my_dataviz" style="height: calc(100% - 250px)"></div>
     </div>
 
     <div id="side-panel">
       <div id="scoreboard" class="scoreboard">
-        <div id="home-score">
-          <div id="name-and-logo" class="name-and-logo">
-            <p id="home-name">Home</p>
-            <img
-              class="team-image"
-              id="team-image-home"
-              src="https://thumbor.forbes.com/thumbor/fit-in/416x416/filters%3Aformat%28jpg%29/https%3A%2F%2Fspecials-images.forbesimg.com%2Fimageserve%2F5ed00f17d4a99d0006d2e738%2F0x0.jpg%3Fbackground%3D000000%26cropX1%3D154%26cropX2%3D4820%26cropY1%3D651%26cropY2%3D5314"
-            />
-          </div>
-          <p id="score">0</p>
-          <!-- <p id="threes">Threes: 0</p>
-          <p id="twos">Twos: 0</p> -->
+        <div id="name-and-logo" class="name-and-logo">
+          <!-- <p id="home-name">Home</p> -->
+          <img
+            class="team-image"
+            id="team-image-home"
+            src="https://thumbor.forbes.com/thumbor/fit-in/416x416/filters%3Aformat%28jpg%29/https%3A%2F%2Fspecials-images.forbesimg.com%2Fimageserve%2F5ed00f17d4a99d0006d2e738%2F0x0.jpg%3Fbackground%3D000000%26cropX1%3D154%26cropX2%3D4820%26cropY1%3D651%26cropY2%3D5314"
+          />
         </div>
-        <div id="visitor-score">
-          <div id="name-and-logo" class="name-and-logo">
-            <p id="visitor-name">Visitor</p>
-            <img
-              class="team-image"
-              id="team-image-visitor"
-              src="https://thumbor.forbes.com/thumbor/fit-in/416x416/filters%3Aformat%28jpg%29/https%3A%2F%2Fspecials-images.forbesimg.com%2Fimageserve%2F5ed00f17d4a99d0006d2e738%2F0x0.jpg%3Fbackground%3D000000%26cropX1%3D154%26cropX2%3D4820%26cropY1%3D651%26cropY2%3D5314"
-            />
-          </div>
-          <p id="score">0</p>
+        <h1 id="home-score">0</h1> 
+        <span id="game-clock">1st 12:00</span> 
+        <h1 id="visitor-score">0</h1>
           <!-- <p id="threes">Threes: 0</p>
           <p id="twos">Twos: 0</p> -->
+        <!-- <h1>:</h1>
+        <h1 id="visitor-score">0</h1> -->
+        <div id="name-and-logo" class="name-and-logo">
+          <!-- <p id="visitor-name">Visitor</p> -->
+          <img
+            class="team-image"
+            id="team-image-visitor"
+            src="https://thumbor.forbes.com/thumbor/fit-in/416x416/filters%3Aformat%28jpg%29/https%3A%2F%2Fspecials-images.forbesimg.com%2Fimageserve%2F5ed00f17d4a99d0006d2e738%2F0x0.jpg%3Fbackground%3D000000%26cropX1%3D154%26cropX2%3D4820%26cropY1%3D651%26cropY2%3D5314"
+          />
+        </div>
+          <!-- <p id="threes">Threes: 0</p>
+          <p id="twos">Twos: 0</p> -->
+      </div>
+      <div class="stat-labels-wrapper">
+        <div class="stat-labels">
+          <p class="label pts-reb-ast">Pts/Reb/Ast</p>
+          <p class="label field-goal">FG</p>
+          <p class="label three-pt">3-PT</p>
         </div>
       </div>
-      <!-- <div id="player-list" class="player-list">
-      </div> -->
+      <div id="player-list" class="player-list">
+      </div>  
     </div>
     
   </div>
 </body>
 <script src="https://d3js.org/d3.v6.js"></script>
 <script src="https://unpkg.com/d3-simple-slider"></script>
+<script src="https://unpkg.com/d3-jnd@0.1.3/build/d3-jnd.js"></script>
 <script type="module" src="visualization.js"></script>

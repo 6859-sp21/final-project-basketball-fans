@@ -1,10 +1,18 @@
+@import url('https://fonts.googleapis.com/css2?family=Fredoka+One&family=Rubik:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap');
+
+body {
+    font-family: Rubik;
+}
+
 .scoreboard {
     display: flex;
-    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    /* flex-direction: row;
     justify-content: flex-start;
     align-items: center;
-    text-align: center;
-    padding-left: 20px;
+    text-align: center; */
+    /* padding-left: 20px;
     padding-right: 20px;
     padding-top: 10px;
     padding-bottom: 10px;
@@ -16,17 +24,16 @@
     background-color: lightgray;
     border: black;
     border-width: 3px;
-    border-radius: 5px;
+    border-radius: 5px; */
 }
 
 #player-list {
-    /*
     display: flex;
     flex-direction: column;
-    justify-content: flex-start;
-    align-items: center;*/
-    position: relative;
-    min-height: 650px;
+    /* justify-content: flex-start;
+    align-items: center; */
+    /* position: relative; */
+    /* min-height: 650px;
     max-height: 650px;
     margin-top: 15px;
     background-color: lightgray;
@@ -35,23 +42,15 @@
     border-radius: 5px;
     min-width: 100%;
     padding-left: 20px;
-    padding-right: 20px;
-}
-
-.court-image-container {
-    position: relative;
-    z-index: -1;
-    width: 97%;
-    top: 20px;
-    display: flex;
-    justify-content: center;
+    padding-right: 20px; */
 }
 
 .court-image {
-    width: 800px; 
+    width: 100%; 
+    margin-top: 20px;
 }
 
-#home-score {
+/* #home-score {
     margin-left: 30px;
     margin-right: 30px;
     padding: 3px 10px;
@@ -65,9 +64,9 @@
     justify-content: space-around;
     width: 200px;
     min-height: 200px;
-}
+} */
 
-#visitor-score {
+/* #visitor-score {
     margin-left: 30px;
     margin-right: 30px;
     padding: 3px 10px;
@@ -81,16 +80,16 @@
     justify-content: space-around;
     width: 200px;
     min-height: 200px;
-}
+} */
 
-.name-and-logo {
+/* .name-and-logo {
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: space-around;
     font-size: 25px;
     max-width: 150px;
-}
+} */
 
 .team-image {
     width: 70px;
@@ -103,23 +102,31 @@
 
 #main-container {
     display: flex;
-    flex-direction: row;
-    justify-content: space-around;
-    align-items: flex-start;
+    padding: 20px 40px;
+    /* padding: 0px 20px; */
+    /* flex-direction: row; */
+    /* justify-content: space-around;
+    align-items: flex-start; */
 }
 
 #main-panel {
-    min-width: 874.06px;
-    max-width: 875px;
+    /* min-width: 874.06px;
+    max-width: 875px; */
+    /* flex-grow: 2; */
+    flex: 70%;
+    margin-right: 40px;
+    
 }
 
 #side-panel {
-    min-width: 320.4px;
-    max-width: 450px;
-    display: flex;
+    /* width: 30%; */
+    /* min-width: 320.4px;
+    max-width: 450px; */
+    /* display: flex;
     flex-direction: column;
     justify-content: flex-start;
-    align-items: center;
+    align-items: center; */
+    flex: 30%;
 }
 
 #score {
@@ -128,44 +135,121 @@
 
 .player-card {
     display: flex;
-    flex-direction: row;
-    justify-content: flex-start;
     align-items: center;
-    position: absolute;
+    margin-bottom: 8px;
+    border-radius: 5px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24);
+    /* padding: 0px 10px; */
+    border-style: solid;
+    border-width: 0 0 0 10px;
+    /* transition: border-width 0.3s ease; */
    
-    margin-top: 5px;
+    /* margin-top: 5px;
     margin-bottom: 5px;
     padding-left: 10px;
     padding-top: 2px;
     padding-bottom: 2px;
-    max-width: 90%;
     background-color: lightskyblue;
     border-width: 1px;
     border-radius: 5px;
-    border: black;
+    border: black; */
+}
+
+.player-card:hover {
+    border-width: 2px 2px 2px 10px;
 }
 
 .player-card-pic {
     max-width: 50px;
     max-height: 50px;
-    background-color: red;
+    margin-top: auto;
+    padding: 0px 10px;
+    /* background-color: red; */
+    /* width: 20%; */
+}
+
+.player-card-name {
+    width: 20%;
+    margin: 5px 0px;
+    /* padding-left: 10px; */
 }
 
 .player-card-stats {
     display: flex;
-    flex-direction: column;
+    /* flex-direction: column;
     justify-content: space-around;
     align-items: flex-start;
     max-width: 250px;
     max-height: 40px;
-    padding-left: 10px;
-    padding-right: 10px;
+    padding-left: 10px; */
+    width: 60%;
+    padding-right: 15px;
+    margin-left: auto;
 }
 
-.ts-input {
-    width: 80%;
+.select-instructions {
+    margin-top: 0;
 }
 
 .ts-control .item {
     font-weight: bold;
+}
+
+.controls-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+#play-button {
+    margin-right: 2em;
+    padding: 5px 10px;
+}
+
+.stat-labels-wrapper {
+    padding: 0 15px 0 10px;
+}
+
+.stat-labels {
+    display: flex;
+    width: 60%;
+    margin-left: auto;
+}
+
+.label {
+    text-align: right;
+    margin-bottom: 5px;
+    font-size: 0.8em;
+}
+
+.stat {
+    text-align: right;
+}
+
+.pts-reb-ast {
+    flex: 50%;
+}
+
+.field-goal, .three-pt {
+    flex: 25%;
+}
+
+.tooltip-text {
+    padding: 5px 10px;
+    background-color: white;
+    border-radius: 8px;
+    position: absolute;
+    z-index: 99;
+    box-shadow: 0px 3px 15px rgba(0,0,0,0.2);
+    font-family: Rubik;
+}
+
+#slider svg {
+    overflow: visible;
+}
+
+#game-clock {
+    word-spacing: 99px;
+    width: min-content;
+    text-align: center;
 }

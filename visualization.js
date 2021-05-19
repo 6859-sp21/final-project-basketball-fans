@@ -1,4 +1,5 @@
 import {stringToColor, coord, url, duration, sliderDuration, aggregateShots, aggregatePlayerListData} from "./utilities.js"
+import colors from "./team_colors.js";
 
 // GET DATA
 const dataUrl = url("./shot_data_2020_all.json");
@@ -29,6 +30,7 @@ var select = new TomSelect('#choosegame', {
   options,
   items: [options[0].value],
   maxItems: 1,
+  maxOptions: 82,
   searchField: ['home', 'visitor', 'date', 'player'],
   sortField: [{field: '$order'}, {field: '$score'}],
   selectOnTab: true,
@@ -73,25 +75,53 @@ var svg = d3
 var currentGameID = options[0].value;
 var justStarted = true 
 var currentTime = 0 // time goes from 0 to 48*60
-var maxTime = 48*60
+var maxTime = 48*60;
 /**
  * SIDE Panel Play List Code
  * 
  */
 
+const QUARTERS = ['1st', '2nd', '3rd', '4th']
 const formatTicks = (tickValue) => {
-  var firstPart = (Math.floor(tickValue/60))
-  var secondPart = ( tickValue % 60 )
-  if (secondPart < 10){
-    secondPart = "0" + secondPart
+  if (tickValue === maxTime) {
+    return 'Final';
   }
-  return firstPart + ":" + secondPart
+  if (tickValue === 48*60) {
+    if (maxTime > 48*60 + 300) {
+      return `OT ${Math.ceil((tickValue - 48*60)/300)}`;
+    }
+    return 'OT';
+  }
+  return QUARTERS[tickValue/720];
 }
-var div = d3
-  .select("#side-panel")
-  .append("div")
-  .attr("id", "player-list")
-  .attr("class", "player-list")
+
+const formatDisplay = tickValue => {
+  if (tickValue === maxTime) {
+    return 'Final';
+  }
+  let qtr, length;
+  if (tickValue >= 48*60) {
+    if (maxTime > 48*60 + 300) {
+      qtr = `OT ${Math.ceil((tickValue - 48*60)/300)}`;
+    }
+    else {
+      qtr = 'OT';
+    } 
+    length = 300;
+    tickValue -= 48*60;
+  } else {
+    qtr = QUARTERS[Math.floor(tickValue/720)]
+    length = 720;
+  }
+  let remaining = length - tickValue % length;
+  var firstPart = (Math.floor(remaining/60))
+  var secondPart = (remaining % 60)
+  if (secondPart < 10){
+    secondPart = "0" + secondPart;
+  }
+  return qtr + " " + firstPart + ":" + secondPart;
+}
+
 
 /**
  * SLIDER and PLAY BUTTON CODE
@@ -109,9 +139,10 @@ var div = d3
     .min(0)
     .max(maxTime)
     .step(1)
-    .width(600)
+    .width(document.getElementById('main-panel').getBoundingClientRect().width - 30)
     .tickFormat(formatTicks)
     .tickValues([0, 12*60, 24*60, 36*60, 48*60])
+    .displayFormat(formatDisplay)
     //.default(0.015);
     .handle(
         d3.symbol()
@@ -169,10 +200,10 @@ var div = d3
 
     d3.select("#slider")
     .append("svg")
-    .attr("width", 800)
-    .attr("height", 80)
+    .attr("width", document.getElementById('main-panel').getBoundingClientRect().width)
+    .attr("height", 70)
     .append("g")
-    .attr("transform", "translate(30,30)")
+    .attr("transform", "translate(15,20)")
     .call(slider);
  }
 
@@ -185,6 +216,12 @@ const COURT_HEIGHT_FT = 50;
 const COURT_WIDTH_FT = 94;
 const HOOP_OFFSET_FT = 4;
 
+const flipping = new Flipping();
+var old_shot = 0;
+var tooltipText = d3.select("#my_dataviz").append("div")
+  .attr("class", "tooltip-text")
+  .style("opacity", 0);
+
 /**
  * UPDATING THE SHOT CHART CODE 
  * @param {*} gameID 
@@ -193,6 +230,8 @@ const HOOP_OFFSET_FT = 4;
 let oldCourtRect = {top: -1, left: -1}
 function updateShotChart(gameID, time) { // this will need to take time as input once we animate
   slider.value(time)
+  d3.select('#game-clock').text(formatDisplay(time));
+
   currentTime = time
   let newGame = (currentGameID != gameID)
   currentGameID = gameID
@@ -234,14 +273,14 @@ function updateShotChart(gameID, time) { // this will need to take time as input
   var homeScore = (shots.length > 0) ? shots[shots.length-1].HOME_SCORE  : 0
   var visitorScore = (shots.length > 0)  ? shots[shots.length-1].VISITOR_SCORE  : 0
   d3.select('#scoreboard').select('#home-score').select('#home-name').text(gameData['home'])
-  d3.select('#scoreboard').select('#home-score').select('#team-image-home').attr('src', teamImages[gameData['home']])
-  d3.select('#scoreboard').select('#home-score').select('#score').text(`${homeScore}`)
+  d3.select('#scoreboard').select('#team-image-home').attr('src', teamImages[gameData['home']])
+  d3.select('#scoreboard').select('#home-score').text(`${homeScore}`)
   // d3.select('#scoreboard').select('#home-score').select('#threes').text(`Threes: ${homeCountOfThrees}`)
   // d3.select('#scoreboard').select('#home-score').select('#twos').text(`Twos: ${homeCountOfTwos}`)
 
   d3.select('#scoreboard').select('#visitor-score').select('#visitor-name').text(gameData['visitor'])
-  d3.select('#scoreboard').select('#visitor-score').select('#score').text(`${visitorScore}`)
-  d3.select('#scoreboard').select('#visitor-score').select('#team-image-visitor').attr('src', teamImages[gameData['visitor']])
+  d3.select('#scoreboard').select('#visitor-score').text(`${visitorScore}`)
+  d3.select('#scoreboard').select('#team-image-visitor').attr('src', teamImages[gameData['visitor']])
 
   // d3.select('#scoreboard').select('#visitor-score').select('#threes').text(`Threes: ${visitorCountOfThrees}`)
   // d3.select('#scoreboard').select('#visitor-score').select('#twos').text(`Twos: ${visitorCountOfTwos}`)
@@ -253,7 +292,47 @@ function updateShotChart(gameID, time) { // this will need to take time as input
   const svgRect = document.getElementById('my_svg').getBoundingClientRect();
   const x_i = courtRect.left - svgRect.left - margin.left;
   const y_i = courtRect.top + courtRect.height/2 - svgRect.top - margin.top;
+
+  var homeName = gameData['home'].split(' ');
+  var visitorName = gameData['visitor'].split(' ');
+
+  if (shots.length - 1 > old_shot && moving) {
+    let latest = shots[shots.length - 1];
+    let text = `${latest.PLAYER} (${latest.TEAM == 'home' ? homeName[homeName.length - 1] : visitorName[visitorName.length - 1]}) ${(latest.MAKE_MISS == 'MAKE') ? `makes ${latest.DISTANCE}` : "misses"} shot`;
+    // if (text !== old_shot) {
+    tooltipText.text(text);
+    tooltipText
+      .style('left', `${courtRect.left + courtRect.width/2 - tooltipText.node().getBoundingClientRect().width/2}px`)
+      .style('top', `${courtRect.top + window.scrollY + 20}px`)
+    tooltipText.transition().style('opacity', 1).transition().delay(duration + interval_time*5).duration(duration/2).style('opacity', 0);
+  }
+  old_shot = shots.length - 1;
+
+  // tooltipContainer.style("left", `${courtRect.left + courtRect.width/2}px`).style("top", `${courtRect.top}px`);
+  // tooltipContainer
+  //   .selectAll('.tooltip-text')
+  //   .data(shots.filter(entry => (entry.x && (entry.VALUE > 1))), (d, i) => {return (d.PLAYER) + (d.TIME_REMAINING) + (d.x) + (d.y) + d.HOME_SCORE + d.VISITOR_SCORE })
+  //   .enter()
+  //   .;
+
+  // let tooltipText = d3.selectAll('.tooltip-text')
+  //   .data(shots.filter(entry => (entry.x && (entry.VALUE > 1))), (d, i) => {return (d.PLAYER) + (d.TIME_REMAINING) + (d.x) + (d.y) + d.HOME_SCORE + d.VISITOR_SCORE })
+  //   .enter()
+  //   .append('div')
+  //     .attr('class', 'tooltip-text')
+  //     .style('left', `${courtRect.left + courtRect.width/2 - 50}px`)
+  //     .style('top', `${courtRect.top}px`)
+  //     .text(d =>  d.PLAYER + " " + ((d.MAKE_MISS == 'MAKE') ? "makes" : "misses") + " " + d.DISTANCE + " shot")
+  //     .transition().delay(duration + interval_time*5).duration(duration/2).style("opacity", 0);
   
+  let homeColors = Object.values(colors).find(team => team.fullName === gameData['home']);
+  let visitorColors = Object.values(colors).find(team => team.fullName === gameData['visitor']);
+  let homeColor = d3.color(homeColors.colors[homeColors.mainColor].hex);
+  let visitorColor = d3.color(visitorColors.colors[visitorColors.mainColor].hex);
+  if (!d3.noticeablyDifferent(homeColor, visitorColor)) {
+    visitorColor = d3.color(visitor_colors.colors[visitor_colors.secondaryColor].hex);
+  }
+
   let image = svg
     .selectAll('.shot')
     .data(shots.filter(entry => (entry.x && (entry.VALUE > 1))), (d, i) => {return (d.PLAYER) + (d.TIME_REMAINING) + (d.x) + (d.y) + d.HOME_SCORE + d.VISITOR_SCORE })
@@ -295,19 +374,21 @@ function updateShotChart(gameID, time) { // this will need to take time as input
           // .attr('transform', function (d) { 
           //   return "translate(" + 20*coord(d.x) + "," + 15*coord(d.y) + ")"
           // })
-          .attr('fill', (d)=>{return d.MAKE_MISS == 'MAKE' ? '#00FF00' : '#FF0000'/*stringToColor(d.PLAYER) : '#FFFFFF'}*/})
-          //.attr('stroke', (d)=>stringToColor(d.PLAYER))
-          //.attr('stroke-width', 0);
+          .attr('fill', d => d.TEAM === 'home' ? homeColor.formatHex() : visitorColor.formatHex())
+          .attr('fill-opacity', d => d.MAKE_MISS === 'MAKE' ? 1 : 0)
+          .attr('stroke', d => d.TEAM === 'home' ? homeColor.formatHex() : visitorColor.formatHex());
+          // .attr('stroke-width', d => d.MAKE_MISS === 'MAKE' ? 0 : 1);
+
         tooltip.append('circle')
           .attr('class', 'border')
           .attr('pointer-events', 'none')
-          .attr('fill', (d)=>{return d.MAKE_MISS == 'MAKE' ? '#00FF00' : '#FF0000' /*return stringToColor(d.PLAYER)*/})
+          .attr('fill', (d)=>{return d.TEAM === 'home' ? homeColor.formatHex() : visitorColor.formatHex() /*return stringToColor(d.PLAYER)*/})
           .call(enter => enter.transition()
           .attr('r', 0)
           .attr('cx', 0)
           .attr('cy', 0)
           .duration(duration)
-          .attr('r', 25)
+          .attr('r', 22)
           .attr('cx', 0)
           .attr('cy', 0)
           );
@@ -347,14 +428,17 @@ function updateShotChart(gameID, time) { // this will need to take time as input
           //TOOLTIP
           // NO TEXT
           
-          tooltip.append('text')
-          .attr('pointer-events', 'none')
-          .text((d, i) => {
-            return d.PLAYER + " " + ((d.MAKE_MISS == 'MAKE') ? "makes" : "misses") + " " + d.DISTANCE + " shot";
-          })
-          .attr("x", function (d) { return -50; })
-          .attr("y", function (d) { return 50; })
-          .attr("opacity", moving ? 1 : 0)
+          // d3.select('#my_dataviz')
+          // .append('div')
+          // .attr('class', 'tooltip-text')
+          // // .append('text')
+          // .attr('pointer-events', 'none')
+          // .style("left", `${courtRect.left + courtRect.width/2}px`)
+          // .style("top", `${courtRect.top}px`)
+          // .text((d, i) => {
+          //   return d.PLAYER + " " + ((d.MAKE_MISS == 'MAKE') ? "makes" : "misses") + " " + d.DISTANCE + " shot";
+          // })
+          // .attr("opacity", moving ? 1 : 0);
 
 /*
           tooltip
@@ -418,27 +502,37 @@ function updateShotChart(gameID, time) { // this will need to take time as input
     )
 
   var topPlayersList = aggregatePlayerListData(shots)
+  console.log(topPlayersList);
   var playerDuration = (moving) ? (total_time <= 20 ? 50 : 100) : 1000
-  var playerCard = div 
+  var playerCard = d3.select('#player-list')
         .selectAll('div.player-card')
         .data(topPlayersList, (d, i) => {return d.PLAYER})
         //.sort(function(a,b){return d3.descending(a.POINTS_SCORED, b.POINTS_SCORED)})
         .join(
           enter => {
-            let p = enter.append('div').attr('class', 'player-card')
-            .call(u=>
-             
-              u.style("top", (9*60+10) +"px").transition().duration(playerDuration).style("top", (d, index) => {return (index*60+10) +"px"})
-            )
-            let playerPicDiv = p.append('div').attr('class', 'player-card-pic')
-            let image = playerPicDiv.append('img').attr('class', 'player-card-pic').attr('src', function(d) {return d.IMAGE})
-            let playerStatsDivOne = p.append('div').attr('class', 'player-card-stats')
-            let playerName = playerStatsDivOne.append('div').text(function(d){return d.PLAYER})
-            let playerScore = playerStatsDivOne.append('div').attr('class', 'counting-stats').text(function(d){return "Pts/Reb/Ast: " + d.POINTS + "|" + d.REBOUNDS + "|" + d.ASSISTS})
+            let p = enter.append('div')
+              .attr('class', 'player-card')
+              .attr('data-flip-key', d => d.PLAYER)
+              .style('border-color', d => d.TEAM === 'home' ? homeColor.formatHex() : visitorColor.formatHex());
+              // .call(u=> {
+              //   // u.transition().duration(playerDuration).style("order", (d, index) => index)
+              //   flipping.read();
+              //   u.style('order', (d, index) => index);
+              //   flipping.flip();
+              //   // flipping.wrap(() => u.style('order', (d, index) => index))
+              // });
+            // flipping.wrap(() => p.style('order', (d, index) => index));
+            
+            
+            p.append('img').attr('class', 'player-card-pic').attr('src', function(d) {return d.IMAGE})
+            let playerName = p.append('div').attr('class', 'player-card-name');
+            playerName.append('div').text(function(d){return d.PLAYER.split(' ')[0]});
+            playerName.append('div').text(function(d){return d.PLAYER.split(' ')[1]}).style('font-weight', 'bold');
 
-            let playerStatsDivTwo = p.append('div').attr('class', 'player-card-stats')
-            let playerShotsMade = playerStatsDivTwo.append('div').attr('class', 'fg').text(function(d){return "FG: " + d.FG_MADE + "/" + d.FG_ATTEMPTED})
-            let playerFarthestShot = playerStatsDivTwo.append('div').attr('class', 'threefg').text(function(d){return "3-pt FG: " + d['3FG_MADE'] + "/" + d['3FG_ATTEMPTED']})
+            let playerStats = p.append('div').attr('class', 'player-card-stats')
+            playerStats.append('div').attr('class', 'stat pts-reb-ast').text(function(d){return d.POINTS + "/" + d.REBOUNDS + "/" + d.ASSISTS})
+            playerStats.append('div').attr('class', 'stat field-goal').text(function(d){return d.FG_MADE + "/" + d.FG_ATTEMPTED})
+            playerStats.append('div').attr('class', 'stat three-pt').text(function(d){return d['3FG_MADE'] + "/" + d['3FG_ATTEMPTED']})
             
             p.on("mouseover", function(event, d) {
               d3.selectAll('.tooltip').attr('opacity', (d2,i)=>{return (d.PLAYER === d2.PLAYER) ? 1 : 0})
@@ -450,22 +544,26 @@ function updateShotChart(gameID, time) { // this will need to take time as input
               d3.selectAll('.tooltip').attr('opacity', (d2,i)=>{return 0})
               d3.selectAll('.shotpoint').attr('opacity', (d2,i)=>{return 1})//.attr('stroke-width', 2)
             })
+
+            flipping.read();
+            p.style('order', (d, index) => index);
+            flipping.flip();
           },
           update => {
-            update.select(".counting-stats").text(function(d){return "Pts/Reb/Ast: " + d.POINTS + "|" + d.REBOUNDS + "|" + d.ASSISTS})
-            update.select(".fg").text(function(d){return "FG: " + d.FG_MADE + "/" + d.FG_ATTEMPTED})
-            update.select(".threefg").text(function(d){return "3-pt FG: " + d['3FG_MADE'] + "/" + d['3FG_ATTEMPTED']})
-            update.call(u=>
-             
-              u.transition().duration(playerDuration).style("top", (d, index) => {return (index*60+10) +"px"})
-            )
-            
+            update.select('.pts-reb-ast').text(function(d){return d.POINTS + "/" + d.REBOUNDS + "/" + d.ASSISTS});
+            update.select('.field-goal').text(function(d){return d.FG_MADE + "/" + d.FG_ATTEMPTED});
+            update.select('three-pt').text(function(d){return d['3FG_MADE'] + "/" + d['3FG_ATTEMPTED']});
+            // update.call(u => {
+            flipping.read();
+            update.style('order', (d, index) => index);
+            flipping.flip();
           },
-          exit => exit.call(u=>
-             
-            u.transition().duration(playerDuration).style("top", (9*60+10) +"px")
-          ).call(u => 
-            u.transition().delay(playerDuration).remove())
+          exit => {
+            flipping.read();
+            exit.style('order', 99);
+            flipping.flip();
+            exit.remove();
+          }
         )
   
 
