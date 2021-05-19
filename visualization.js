@@ -535,10 +535,10 @@ function updateShotChart(gameID, time) { // this will need to take time as input
             playerStats.append('div').attr('class', 'stat three-pt').text(function(d){return d['3FG_MADE'] + "/" + d['3FG_ATTEMPTED']})
             
             p.on("mouseover", function(event, d) {
-              d3.selectAll('.tooltip').attr('opacity', (d2,i)=>{return (d.PLAYER === d2.PLAYER) ? 1 : 0})
+              d3.selectAll('.tooltip').attr('opacity', (d2,i)=>{return (d.PLAYER === d2.PLAYER) ? 0 : 0})
               .select('text').attr('opacity', 0)
 
-              d3.selectAll('.shotpoint').attr('opacity', (d2,i)=>{return d.PLAYER === d2.PLAYER ? 0 : 0.2})//.attr('stroke-width', 0)
+              d3.selectAll('.shotpoint').attr('opacity', (d2,i)=>{return d.PLAYER === d2.PLAYER ? 1 : 0.1})//.attr('stroke-width', 0)
             })
             p.on("mouseout", function(event, d) {
               d3.selectAll('.tooltip').attr('opacity', (d2,i)=>{return 0})
