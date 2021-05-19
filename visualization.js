@@ -458,10 +458,20 @@ function updateShotChart(gameID, time) { // this will need to take time as input
           
 
           point.on("mouseover", function(event, d) {
-            d3.selectAll('.tooltip').attr('opacity', (d2,i)=>{return (d.PLAYER === d2.PLAYER) && (d.TIME_REMAINING == d2.TIME_REMAINING) ? 1 : 0})
-            d3.selectAll('.shotpoint').attr('opacity', (d2,i)=>{return d.PLAYER === d2.PLAYER && (d.TIME_REMAINING == d2.TIME_REMAINING)? 0 : 0.2})//.attr('stroke-width', 0)
+            d3.selectAll('.tooltip').attr('opacity', (d2,i)=>{return (d.PLAYER === d2.PLAYER) && (d.TIME_REMAINING == d2.TIME_REMAINING) && (d.QUARTER == d2.QUARTER) ? 1 : 0})
+            d3.selectAll('.shotpoint').attr('opacity', (d2,i)=>{return d.PLAYER === d2.PLAYER && (d.TIME_REMAINING == d2.TIME_REMAINING) && (d.QUARTER == d2.QUARTER) ? 0 : 0.2})//.attr('stroke-width', 0)
+          
+            let text = `${d.PLAYER} (${d.TEAM == 'home' ? homeName[homeName.length - 1] : visitorName[visitorName.length - 1]}) ${(d.MAKE_MISS == 'MAKE') ? `makes ${d.DISTANCE}` : "misses"} shot`;
+     
+            tooltipText.text(text);
+            tooltipText
+              .style('left', `${courtRect.left + courtRect.width/2 - tooltipText.node().getBoundingClientRect().width/2}px`)
+              .style('top', `${courtRect.top + window.scrollY + 20}px`)
+            tooltipText.style('opacity', 1)
+          
           })
           point.on("mouseout", function(event, d) {
+            tooltipText.style('opacity', 0)
             d3.selectAll('.tooltip').attr('opacity', (d2,i)=>{return 0})
             d3.selectAll('.shotpoint').attr('opacity', (d2,i)=>{return 1})//.attr('stroke-width', 2)
           })
