@@ -36,25 +36,42 @@ var select = new TomSelect('#choosegame', {
   selectOnTab: true,
   onChange: value => {
     pause();
+    // updateCourtLogo(value);
     updateShotChart(value, 0);
   },
   onDelete: () => false
 });
 
+const updateCourtLogo = gameId => {
+  let courtRect = document.querySelector('.court-image').getBoundingClientRect();
+  let logo = d3.select('.home-court-logo');
+  let logoRect = logo.node().getBoundingClientRect();
+  logo.attr('src', teamImages[data[gameId].home])
+    .style('left', `${courtRect.left + courtRect.width/2 - logoRect.width/2}px`)
+    .style('top', `${courtRect.top + courtRect.height/2 + window.scrollY - logoRect.height/2}px`);
+}
+// updateCourtLogo(options[0].value);
+// let logo = d3.select('.home-court-logo');
+// let logoRect = logo.node().getBoundingClientRect();
+// console.log(logoRect);
+// logo.style('top', `${logoRect.top - logoRect.height/2 + 5}px`);
 
 var playButton = d3.select("#play-button");
 var playButtonDOM = document.getElementById("play-button");
 function pause() {
   moving = false;
-        //console.log("done" + currentTime)
-        if(timer != 0) timer.stop();
-        timer = 0
-        playButton.text("Play")
-        d3.select('.paused').style('display', 'block')
-        
-        d3.select('.playing').style('display', 'none');
-        playButtonDOM.disabled = true
-        setTimeout(() => {playButtonDOM.disabled = false}, duration);
+  //console.log("done" + currentTime)
+  if(timer != 0) timer.stop();
+  timer = 0
+  playButton.text("Play")
+  d3.select('.paused').style('display', 'block')
+  
+  d3.select('.playing').style('display', 'none');
+  playButtonDOM.disabled = true
+  console.log(slider.value());
+  if (slider.value() < maxTime) {
+    setTimeout(() => {playButtonDOM.disabled = false}, duration);
+  }
 }
 
 
@@ -155,21 +172,19 @@ const formatDisplay = tickValue => {
     .on("onchange", (val) => {
         //slider.value(val);
         updateShotChart(currentGameID, val)
+        if (val < maxTime) {
+          playButtonDOM.disabled = false;
+        } else {
+          playButtonDOM.disabled = true;
+        }
     })
 
-    function step() {
-        
-        
-        let nextTime = currentTime + 5
-       // console.log(nextTime)
-        if (nextTime > maxTime) {
-            pause()
+    function step() {      
+        if (currentTime === maxTime) {
+          pause();
         } else {
-            //console.log("notdone" + currentTime + ' -> ' + nextTime)
-           
-            updateShotChart(currentGameID, nextTime)
+          updateShotChart(currentGameID, Math.min(maxTime, currentTime + 5))
         }
-        
     }
    
     
@@ -221,6 +236,7 @@ var old_shot = 0;
 var tooltipText = d3.select("#my_dataviz").append("div")
   .attr("class", "tooltip-text")
   .style("opacity", 0);
+var hover = false;
 
 /**
  * UPDATING THE SHOT CHART CODE 
@@ -296,7 +312,7 @@ function updateShotChart(gameID, time) { // this will need to take time as input
   var homeName = gameData['home'].split(' ');
   var visitorName = gameData['visitor'].split(' ');
 
-  if (shots.length - 1 > old_shot && moving) {
+  if (shots.length - 1 > old_shot && moving && !hover) {
     let latest = shots[shots.length - 1];
     let text = `${latest.PLAYER} (${latest.TEAM == 'home' ? homeName[homeName.length - 1] : visitorName[visitorName.length - 1]}) ${(latest.MAKE_MISS == 'MAKE') ? `makes ${latest.DISTANCE}` : "misses"} shot`;
     // if (text !== old_shot) {
@@ -327,10 +343,15 @@ function updateShotChart(gameID, time) { // this will need to take time as input
   
   let homeColors = Object.values(colors).find(team => team.fullName === gameData['home']);
   let visitorColors = Object.values(colors).find(team => team.fullName === gameData['visitor']);
+  let courtColor = d3.rgb(220, 195, 164);
   let homeColor = d3.color(homeColors.colors[homeColors.mainColor].hex);
   let visitorColor = d3.color(visitorColors.colors[visitorColors.mainColor].hex);
   if (!d3.noticeablyDifferent(homeColor, visitorColor)) {
-    visitorColor = d3.color(visitor_colors.colors[visitor_colors.secondaryColor].hex);
+    visitorColor = d3.color(visitorColors.colors[visitorColors.secondaryColor].hex);
+  }
+  if (!d3.noticeablyDifferent(visitorColor, courtColor)) {
+    visitorColor = d3.color(visitorColors.colors[visitorColors.mainColor].hex);
+    homeColor = d3.color(homeColors.colors[homeColors.secondaryColor].hex);
   }
 
   let image = svg
@@ -363,9 +384,6 @@ function updateShotChart(gameID, time) { // this will need to take time as input
 
         
           // .attr('opacity', 0);
-
-        let tooltip = g.append('g').attr('class', 'tooltip');
-
         let point = g.append('circle')
           .attr('class', 'shotpoint')
           .attr('r', 0)
@@ -377,7 +395,8 @@ function updateShotChart(gameID, time) { // this will need to take time as input
           .attr('fill', d => d.TEAM === 'home' ? homeColor.formatHex() : visitorColor.formatHex())
           .attr('fill-opacity', d => d.MAKE_MISS === 'MAKE' ? 1 : 0)
           .attr('stroke', d => d.TEAM === 'home' ? homeColor.formatHex() : visitorColor.formatHex());
-          // .attr('stroke-width', d => d.MAKE_MISS === 'MAKE' ? 0 : 1);
+
+        let tooltip = g.append('g').attr('class', 'tooltip');
 
         tooltip.append('circle')
           .attr('class', 'border')
@@ -453,30 +472,43 @@ function updateShotChart(gameID, time) { // this will need to take time as input
           .delay(duration*2/2 + interval_time*5).duration(duration/2)
           .attr("opacity", 0))*/
          // .transition().delay(500).remove()
-         
-          tooltip.call(e => e.attr("opacity", 1).transition().delay(duration + interval_time*5).duration(duration/2).attr("opacity", 0))
+          
+          tooltip.call(e => e.attr("opacity", hover ? 0.3 : 1).transition().delay(duration + interval_time*5).duration(duration/2).attr("opacity", 0))
           
 
           point.on("mouseover", function(event, d) {
-            d3.selectAll('.tooltip').attr('opacity', (d2,i)=>{return (d.PLAYER === d2.PLAYER) && (d.TIME_REMAINING == d2.TIME_REMAINING) && (d.QUARTER == d2.QUARTER) ? 1 : 0})
-            d3.selectAll('.shotpoint').attr('opacity', (d2,i)=>{return d.PLAYER === d2.PLAYER && (d.TIME_REMAINING == d2.TIME_REMAINING) && (d.QUARTER == d2.QUARTER) ? 0 : 0.2})//.attr('stroke-width', 0)
+            hover = true;
+            d3.selectAll('.tooltip').attr('opacity', function (d2,i) {return (d.PLAYER === d2.PLAYER) && (d.TIME_REMAINING == d2.TIME_REMAINING) && (d.QUARTER == d2.QUARTER) ? 1 : Math.min(d3.select(this).attr('opacity'), 0.3)});
+            d3.selectAll('.shotpoint').filter(function (d2, i) { return ((d.PLAYER !== d2.PLAYER) || (d.TIME_REMAINING != d2.TIME_REMAINING) || (d.QUARTER == d2.QUARTER)) && d3.select(this).attr('opacity') < 1})
+              .transition().delay(duration).attr('r', 5).attr('opacity', 0.2).attr('stroke-width', 2);
+            d3.selectAll('.shotpoint').filter(function (d2, i) { return ((d.PLAYER === d2.PLAYER) && (d.TIME_REMAINING == d2.TIME_REMAINING) && (d.QUARTER == d2.QUARTER)) || d3.select(this).attr('opacity') == 1})
+              .attr('r', 5).attr('opacity', (d2,i)=>{return d.PLAYER === d2.PLAYER && (d.TIME_REMAINING == d2.TIME_REMAINING) && (d.QUARTER == d2.QUARTER) ? 0 : 0.2}).attr('stroke-width', 2);
+            // d3.selectAll('.shotpoint').attr('opacity', (d2,i)=>{return d.PLAYER === d2.PLAYER && (d.TIME_REMAINING == d2.TIME_REMAINING) && (d.QUARTER == d2.QUARTER) ? 0 : Math.min(d3.select(this).attr('opacity'), 0.1)})
+            //   .filter(function (d2, i) { return d.PLAYER !== d2.PLAYER || (d.TIME_REMAINING != d2.TIME_REMAINING) && (d.QUARTER != d2.QUARTER) && d3.select(this).attr('opacity') < 1})
+            //   .transition().attr('opacity', 0.1);
+            // d3.selectAll('.shotpoint').attr('opacity', functionn (d2,i) {return d.PLAYER === d2.PLAYER && (d.TIME_REMAINING == d2.TIME_REMAINING) && (d.QUARTER == d2.QUARTER) ? 0 : Math.min(d3.select(this).attr('opacity'), 0.2)})
+
           
             let text = `${d.PLAYER} (${d.TEAM == 'home' ? homeName[homeName.length - 1] : visitorName[visitorName.length - 1]}) ${(d.MAKE_MISS == 'MAKE') ? `makes ${d.DISTANCE}` : "misses"} shot`;
      
+            let courtRect = document.querySelector('.court-image').getBoundingClientRect();
             tooltipText.text(text);
             tooltipText
               .style('left', `${courtRect.left + courtRect.width/2 - tooltipText.node().getBoundingClientRect().width/2}px`)
               .style('top', `${courtRect.top + window.scrollY + 20}px`)
-            tooltipText.style('opacity', 1)
+            tooltipText.transition().style('opacity', 1);
           
           })
           point.on("mouseout", function(event, d) {
+            hover = false;
             tooltipText.style('opacity', 0)
-            d3.selectAll('.tooltip').attr('opacity', (d2,i)=>{return 0})
-            d3.selectAll('.shotpoint').attr('opacity', (d2,i)=>{return 1})//.attr('stroke-width', 2)
+            d3.selectAll('.tooltip').attr('opacity', function (d2,i) {return (d.PLAYER === d2.PLAYER) && (d.TIME_REMAINING == d2.TIME_REMAINING) && (d.QUARTER == d2.QUARTER) ? 0 : d3.select(this).attr('opacity') > 0 ? 1 : 0})
+            d3.selectAll('.shotpoint').interrupt().attr('r', 5).attr('opacity', 1).attr('stroke-width', 2);
           })
-
-          point.call(e => e.transition().delay(duration + interval_time*5).duration(duration/2).attr('r', 5).attr('opacity', 1).attr('stroke-width', 2))
+          
+          point.call(e => {
+            e.transition().delay(duration + interval_time*5).duration(duration/2).attr('r', 5).attr('opacity', hover ? 0.1 : 1).attr('stroke-width', 2);
+          });
         },
       update => {
         if(oldCourtRect.top === courtRect.top && oldCourtRect.left === courtRect.left) {

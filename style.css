@@ -98,6 +98,7 @@ body {
 
 #my_svg {
     overflow: visible;
+    z-index: 3;
 }
 
 #main-container {
@@ -235,11 +236,11 @@ body {
 }
 
 .tooltip-text {
-    padding: 5px 10px;
+    padding: 10px 15px;
     background-color: white;
     border-radius: 8px;
     position: absolute;
-    z-index: 99;
+    z-index: 9;
     box-shadow: 0px 3px 15px rgba(0,0,0,0.2);
     font-family: Rubik;
 }
@@ -252,4 +253,12 @@ body {
     word-spacing: 99px;
     width: min-content;
     text-align: center;
+}
+
+.home-court-logo {
+    position: absolute;
+    opacity: 0.8;
+    /* z-index: 2; */
+    mix-blend-mode: multiply;
+    width: 10%;
 }

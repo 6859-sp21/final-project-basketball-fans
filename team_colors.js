@@ -178,8 +178,8 @@ const colors = {
   },
   GSW: {
     fullName: 'Golden State Warriors',
-    mainColor: 'gold',
-    secondaryColor: 'blue',
+    mainColor: 'blue',
+    secondaryColor: 'gold',
     colors: {
       gold: {
         hex: '#ffc72d',
@@ -467,7 +467,7 @@ const colors = {
     },
   },
   POR: {
-    fullName: 'Portland Trailblazers',
+    fullName: 'Portland Trail Blazers',
     mainColor: 'red',
     secondaryColor: 'black',
     colors: {
